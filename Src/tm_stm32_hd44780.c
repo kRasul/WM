@@ -496,8 +496,9 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
   TM_HD44780_Puts(0,1, &lit[0]);  
   lit[0] = _L;
   lit[1] = '.';
-  lit[1] = '-';
-  lit[2] = '\0';
+  lit[2] = '-';
+  lit[3] = '\0';
+  TM_HD44780_Puts(3,1, &lit[0]);  
   
   lit[0] = rub/100 + 0x30;
   if (lit[0] == '0') lit[0] = ' ';      if (lit[0] == '0') lit[0] = ' ';

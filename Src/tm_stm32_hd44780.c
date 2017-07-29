@@ -32,19 +32,21 @@
 #define _B   0xA0
 #define _I   0xA5
 #define _Ib  0xAE
-
+#define _P   0xA8
 #define _F   0xAA
 #define _L   0xA7
 #define _R   0xB1
-
+#define _G   0xA1
 #define _Y   0xA9
+#define _GG  0xA3
+
 #define _t   0xBF
 #define _d   0xE0
 #define _m   0xBC
 #define _l   0xBB
-#define _G   0xA1
 #define _b   0xB2  
 #define _g   0xB4
+#define _p   0xBE
 #define _i   0xB8
 #define _ib  0xC3
 #define _k   0xBA
@@ -72,7 +74,7 @@ typedef struct {
 
 /* Private variable */
 HD44780_Options_t HD44780_Opts;
-const uint8_t let_g[8] = {
+/*const uint8_t let_g[8] = {
     0xf,0x8,0x8,0x8,0x8,0x8,0x8,0x0};           // Ã
   const uint8_t let_i[8] = {    
     0x11,0x13,0x15,0x15,0x15,0x19,0x11,0x0};    // Û
@@ -88,7 +90,7 @@ const uint8_t let_g[8] = {
     0x15,0x15,0xe,0x4,0xe,0x15,0x15};           // Æ
   const uint8_t let_d[8] = {
     0xe,0xa,0xa,0xa,0xa,0x1f,0x11};             // Ä
-  // çàïèñûâàåì èõ â ÎÇÓ ÆÊÈ 
+  // çàïèñûâàåì èõ â ÎÇÓ ÆÊÈ */
   
 
 /* Pin definitions */
@@ -97,8 +99,8 @@ const uint8_t let_g[8] = {
 #define HD44780_E_LOW               E_CLR()
 #define HD44780_E_HIGH              E_SET()
 
-//#define HD44780_E_BLINK             E_SET(); HD44780_Delay(60); E_CLR(); HD44780_Delay(60)
-#define HD44780_E_BLINK             E_SET(); HD44780_Delay(300); E_CLR(); HD44780_Delay(300)
+#define HD44780_E_BLINK             E_SET(); HD44780_Delay(60); E_CLR(); HD44780_Delay(60)
+//#define HD44780_E_BLINK             E_SET(); HD44780_Delay(300); E_CLR(); HD44780_Delay(300)
 #define HD44780_Delay(x)            delayMicroseconds(x)
 
 /* Commands*/
@@ -402,6 +404,7 @@ void printNotReady(uint16_t liters){
 
 void printWait(uint16_t liters){  
 //  createRusChars();
+  // ÃÎÒÎÂÎ: 15Ë.
   char lit0[17] = {_G, 'O', 'T', 'O', 'B', 'O', ':', ' ', '\0'};
   TM_HD44780_Puts(0, 0, &lit0[0]);
   
@@ -419,16 +422,7 @@ void printWait(uint16_t liters){
   lit0[2] = '\0';  
   TM_HD44780_Puts(14,0, &lit0[0]);    
   
-  TM_HD44780_Puts(0,1, "B");
-  TM_HD44780_PutCustom(1, 1, 3);
-  TM_HD44780_PutCustom(2, 1, 5);
-  
-  TM_HD44780_Puts(3,1, "EP");
-  TM_HD44780_PutCustom(5, 1, 1);
-  TM_HD44780_Puts(6,1,"TE O");
-  TM_HD44780_PutCustom(10, 1, 5);
-  TM_HD44780_PutCustom(11, 1, 4);
-  TM_HD44780_Puts(12,1, "EM. ");
+  // ÂÍÅÑÈÒÅ ÎÏËÀÒÓ
 }
 
 void printPaid(uint16_t rub, uint16_t litersPaid) {
@@ -448,25 +442,22 @@ void printPaid(uint16_t rub, uint16_t litersPaid) {
   lit[2] = '.';
   lit[3] = litersPaid%10 + 0x30;    
   lit[4] = 0;
-  
   TM_HD44780_Puts(9,0, &lit[0]);    
-  TM_HD44780_PutCustom(14, 0, 2);
-  TM_HD44780_Puts(15,0, ".");
-  TM_HD44780_Puts(1,1, "HA");
-  TM_HD44780_PutCustom(3, 1, 6);
-  TM_HD44780_Puts(4,1, "M");
-  TM_HD44780_PutCustom(5, 1, 1);
-  TM_HD44780_Puts(6,1, "TE CTAPT");
+  
+  lit[0] = _L;
+  lit[1] = '.';
+  lit[2] = '\0';
+  TM_HD44780_Puts(14,0, &lit[0]);
+
+  char lit2[17] = {' ', 'H', 'A', _G, 'M', _I, 'T', 'E', ' ', 'C', 'T', 'A', 'P', 'T', ' ', ' ', '\0'};
+  TM_HD44780_Puts(0,1, &lit2[0]);
 }
 
 void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
 //  createRusChars();
-  
-  TM_HD44780_Puts(0,0, " B");
-  TM_HD44780_PutCustom(2, 0, 3);
-  TM_HD44780_PutCustom(3, 0, 7);
-  TM_HD44780_Puts(4,0, "AHO:        ");
-  
+  char let0[17] = {' ', 'B', _Ib, _D, 'A', 'H', 'O', ':', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+  TM_HD44780_Puts(0,0, &let0[0]);
+
   char lit[5];
   lit[4] = '\0';
   if (liters > 999) liters = 999;
@@ -476,18 +467,18 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
     lit[2] = ',';
     lit[3] = liters%10 + 0x30;    
   }
-  else {                                // <10 liters - 99 - 9.9
+  else {                                        // <10 liters - 99 - 9.9
     lit[0] = ' ';
     lit[1] = liters/10 + 0x30;
     lit[2] = ',';
     lit[3] = liters%10 + 0x30;
   }
   TM_HD44780_Puts(9,0, &lit[0]);
-  TM_HD44780_Puts(13,0, " ");
-  TM_HD44780_PutCustom(14, 0, 2);
-  TM_HD44780_Puts(15,0, ".");
+  lit[0] = _L;
+  lit[1] = '.';
+  lit[2] = '\0';
+  TM_HD44780_Puts(13,0, &lit[0]);
   
-  lit[4] = '\0';
   if (milLitOut > 999) milLitOut = 999;
   if (milLitOut > 99) {                       // >10.0..99.9 milLitOut - 100 - 999   
     lit[0] = milLitOut/100 + 0x30;            if (lit[0] == '0') lit[0] = ' ';
@@ -501,9 +492,12 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
     lit[2] = ',';
     lit[3] = milLitOut%10 + 0x30;
   }
+  
   TM_HD44780_Puts(0,1, &lit[0]);  
-  TM_HD44780_PutCustom(4, 1, 2);
-  TM_HD44780_Puts(5,1, ".-");
+  lit[0] = _L;
+  lit[1] = '.';
+  lit[1] = '-';
+  lit[2] = '\0';
   
   lit[0] = rub/100 + 0x30;
   if (lit[0] == '0') lit[0] = ' ';      if (lit[0] == '0') lit[0] = ' ';
@@ -511,32 +505,11 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
   lit[2] = rub%10 + 0x30;
   lit[3] = '\0';
   TM_HD44780_Puts(8,1, &lit[0]);
-  TM_HD44780_Puts(11,1, " PY");
-  TM_HD44780_PutCustom(14, 1, 5);
-  TM_HD44780_Puts(15,1, ".");
+  
+  char lit1[] = {' ', 'P', _Y, _B, '\0'};
+  TM_HD44780_Puts(11,1, &lit1[0]);
 }
 
-void printMeasure(uint16_t liters){
-//  createRusChars();
-  TM_HD44780_Puts(0, 0, "  3M. EMKOCT");
-  TM_HD44780_PutCustom(1, 0, 1);
-  TM_HD44780_PutCustom(12, 0, 1);
-  TM_HD44780_Puts(13, 0, ":   ");
-  
-  char lit[7];
-  lit[0] = ' ';
-  lit[1] = liters/1000 + 0x30;                 if (lit[1] == '0') lit[1] = ' ';
-  lit[2] = (liters%1000)/100 + 0x30;           if (lit[2] == '0' && lit[1] == ' ') lit[2] = ' ';
-  lit[3] = (liters%100)/10 + 0x30;    
-  lit[4] = ',';
-  lit[5] = liters%10 + 0x30;    
-  lit[6] = '\0';
-  
-  TM_HD44780_Puts(1,1, &lit[0]);
-  TM_HD44780_Puts(7,1, " ");
-  TM_HD44780_PutCustom(8, 1, 2);
-  TM_HD44780_Puts(9,1, ".      ");
-}
 
 extern filtersStr filters;
 

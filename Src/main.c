@@ -76,6 +76,7 @@ counters cnt = {0};
 
 float waterPrice = 400.0;                       // цена литра, в копейках
 uint8_t outPumpNoWaterStopTime = 3;             // секунд до остановки выходного насоса, если нет воды
+uint8_t startContVolume = 15;                   // минимальный объем воды в контейнере
 uint8_t containerMinVolume = 3;                 // минимальный объем воды в контейнере
 uint8_t maxContainerVolume = 95;                // объем контейнера с водой
 
@@ -149,7 +150,7 @@ void lcdMgmnt() {
     if (wa.machineState == WAIT)        printWait(wa.currentContainerVolume);
     if (wa.machineState == JUST_PAID)   {
       uint32_t temp = money.sessionPaid;        // avoid undefined behavior warning
-      printPaid(temp/100, (uint16_t)(((float)temp*10.0/100.0)/waterPrice));
+      printPaid(temp/100, (uint16_t)(((float)temp*10.0)/waterPrice));
     }
     if (wa.machineState == WORK) {
       wa.litersLeftFromSession = (uint32_t)((money.leftFromPaid*10.0)/waterPrice);
@@ -232,7 +233,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
   initUART();
-  TM_HD44780_Init(16, 2, 5000);
+  TM_HD44780_Init(16, 2, 1000);
   wa.machineState = WAIT;
   wa.lastMachineState = FREE;
   /* USER CODE END 2 */
@@ -241,10 +242,27 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   //input10Counter = 0;
   //out10Counter = 0;
+  cnt.milLitContIn = startContVolume * 1000;
+/*  MAINP_ON();
+  MAINP_OFF();
+  CONSUMP_ON();
+  CONSUMP_OFF();
+  MAINV_ON();
+  MAINV_OFF();
+  WASH_FILV_ON();
+  WASH_FILV_OFF();
+  WARM_ON();
+  WARM_OFF();
+  COLD_ON();
+  COLD_OFF();
 
-  while (1) {
+  INHIBIT_EN();
+  INHIBIT_DIS();
+*/
+  while (1) {}
+  {
 ////// MANAGE STUFF    
-    containerMgmnt();
+  //  containerMgmnt();
     uartDataExchMgmnt();
     lcdMgmnt();
     if (wa.machineState == WAIT) {
@@ -586,8 +604,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, LCD_D7_Pin|LCD_D6_Pin|LCD_D5_Pin|LCD_D4_Pin 
-                          |OUT3_Pin|OUT4_Pin|PWR4_Pin|PWR3_Pin 
-                          |PWR2_Pin, GPIO_PIN_RESET);
+                          |OUT3_Pin|OUT4_Pin|PWR5_Pin|PWR4_Pin 
+                          |PWR3_Pin|PWR2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, LCD_E_Pin|LCD_RS_Pin|OUT1_Pin|OUT2_Pin 
@@ -603,15 +621,18 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO7_Pin|GPIO6_Pin|GPIO5_Pin|GPIO4_Pin 
-                          |GPIO3_Pin|GPIO2_Pin|GPIO1_Pin|PWR6_Pin 
-                          |NINT_IN20_Pin|NINT_IN19_Pin|NINT_IN18_Pin|NINT_IN17_Pin, GPIO_PIN_RESET);
+                          |GPIO3_Pin|GPIO2_Pin|GPIO1_Pin|PWR6_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : INT_IN4_Pin INT_IN3_Pin INT_IN2_Pin INT_IN1_Pin 
-                           SERV_BUT4_Pin INT_IN6_Pin INT_IN5_Pin */
-  GPIO_InitStruct.Pin = INT_IN4_Pin|INT_IN3_Pin|INT_IN2_Pin|INT_IN1_Pin 
-                          |SERV_BUT4_Pin|INT_IN6_Pin|INT_IN5_Pin;
+  /*Configure GPIO pins : INT_IN4_Pin INT_IN3_Pin INT_IN2_Pin INT_IN1_Pin */
+  GPIO_InitStruct.Pin = INT_IN4_Pin|INT_IN3_Pin|INT_IN2_Pin|INT_IN1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : SERV_BUT4_Pin INT_IN6_Pin INT_IN5_Pin */
+  GPIO_InitStruct.Pin = SERV_BUT4_Pin|INT_IN6_Pin|INT_IN5_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SERV_BUT3_Pin SERV_BUT2_Pin SERV_BUT1_Pin W26_DI_Pin 
@@ -619,15 +640,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = SERV_BUT3_Pin|SERV_BUT2_Pin|SERV_BUT1_Pin|W26_DI_Pin 
                           |INT_TEMP2_Pin|INT_TEMP1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LCD_D7_Pin LCD_D6_Pin LCD_D5_Pin LCD_D4_Pin 
-                           OUT3_Pin OUT4_Pin PWR4_Pin PWR3_Pin 
-                           PWR2_Pin */
+                           OUT3_Pin OUT4_Pin PWR5_Pin PWR4_Pin 
+                           PWR3_Pin PWR2_Pin */
   GPIO_InitStruct.Pin = LCD_D7_Pin|LCD_D6_Pin|LCD_D5_Pin|LCD_D4_Pin 
-                          |OUT3_Pin|OUT4_Pin|PWR4_Pin|PWR3_Pin 
-                          |PWR2_Pin;
+                          |OUT3_Pin|OUT4_Pin|PWR5_Pin|PWR4_Pin 
+                          |PWR3_Pin|PWR2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -657,37 +678,31 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : GPIO7_Pin GPIO6_Pin GPIO5_Pin GPIO4_Pin 
-                           GPIO3_Pin GPIO2_Pin GPIO1_Pin PWR6_Pin 
-                           NINT_IN20_Pin NINT_IN19_Pin NINT_IN18_Pin NINT_IN17_Pin */
+                           GPIO3_Pin GPIO2_Pin GPIO1_Pin PWR6_Pin */
   GPIO_InitStruct.Pin = GPIO7_Pin|GPIO6_Pin|GPIO5_Pin|GPIO4_Pin 
-                          |GPIO3_Pin|GPIO2_Pin|GPIO1_Pin|PWR6_Pin 
-                          |NINT_IN20_Pin|NINT_IN19_Pin|NINT_IN18_Pin|NINT_IN17_Pin;
+                          |GPIO3_Pin|GPIO2_Pin|GPIO1_Pin|PWR6_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PWR5_Pin */
-  GPIO_InitStruct.Pin = PWR5_Pin;
+  /*Configure GPIO pins : NINT_IN21_Pin NINT_IN20_Pin NINT_IN19_Pin NINT_IN18_Pin 
+                           NINT_IN17_Pin NINT_IN16_Pin NINT_IN15_Pin NINT_IN14_Pin */
+  GPIO_InitStruct.Pin = NINT_IN21_Pin|NINT_IN20_Pin|NINT_IN19_Pin|NINT_IN18_Pin 
+                          |NINT_IN17_Pin|NINT_IN16_Pin|NINT_IN15_Pin|NINT_IN14_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(PWR5_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : NINT_IN21_Pin NINT_IN16_Pin NINT_IN15_Pin NINT_IN14_Pin */
-  GPIO_InitStruct.Pin = NINT_IN21_Pin|NINT_IN16_Pin|NINT_IN15_Pin|NINT_IN14_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pins : NINT_IN13_Pin NINT_IN12_Pin NINT_IN11_Pin NINT_IN10_Pin */
   GPIO_InitStruct.Pin = NINT_IN13_Pin|NINT_IN12_Pin|NINT_IN11_Pin|NINT_IN10_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : INT_IN9_Pin INT_IN8_Pin INT_IN7_Pin */
   GPIO_InitStruct.Pin = INT_IN9_Pin|INT_IN8_Pin|INT_IN7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
@@ -705,6 +720,12 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI4_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 2, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

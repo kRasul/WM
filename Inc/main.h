@@ -57,14 +57,19 @@
 #define INT_IN2_EXTI_IRQn EXTI4_IRQn
 #define INT_IN1_Pin GPIO_PIN_5
 #define INT_IN1_GPIO_Port GPIOE
+#define INT_IN1_EXTI_IRQn EXTI9_5_IRQn
 #define SERV_BUT4_Pin GPIO_PIN_6
 #define SERV_BUT4_GPIO_Port GPIOE
+#define SERV_BUT4_EXTI_IRQn EXTI9_5_IRQn
 #define SERV_BUT3_Pin GPIO_PIN_13
 #define SERV_BUT3_GPIO_Port GPIOC
+#define SERV_BUT3_EXTI_IRQn EXTI15_10_IRQn
 #define SERV_BUT2_Pin GPIO_PIN_14
 #define SERV_BUT2_GPIO_Port GPIOC
+#define SERV_BUT2_EXTI_IRQn EXTI15_10_IRQn
 #define SERV_BUT1_Pin GPIO_PIN_15
 #define SERV_BUT1_GPIO_Port GPIOC
+#define SERV_BUT1_EXTI_IRQn EXTI15_10_IRQn
 #define LCD_D7_Pin GPIO_PIN_0
 #define LCD_D7_GPIO_Port GPIOC
 #define LCD_D6_Pin GPIO_PIN_1
@@ -149,10 +154,13 @@
 #define W26_DO_GPIO_Port GPIOA
 #define W26_DI_Pin GPIO_PIN_10
 #define W26_DI_GPIO_Port GPIOC
+#define W26_DI_EXTI_IRQn EXTI15_10_IRQn
 #define INT_TEMP2_Pin GPIO_PIN_11
 #define INT_TEMP2_GPIO_Port GPIOC
+#define INT_TEMP2_EXTI_IRQn EXTI15_10_IRQn
 #define INT_TEMP1_Pin GPIO_PIN_12
 #define INT_TEMP1_GPIO_Port GPIOC
+#define INT_TEMP1_EXTI_IRQn EXTI15_10_IRQn
 #define NINT_IN21_Pin GPIO_PIN_0
 #define NINT_IN21_GPIO_Port GPIOD
 #define NINT_IN20_Pin GPIO_PIN_1
@@ -179,10 +187,13 @@
 #define NINT_IN10_GPIO_Port GPIOB
 #define INT_IN9_Pin GPIO_PIN_7
 #define INT_IN9_GPIO_Port GPIOB
+#define INT_IN9_EXTI_IRQn EXTI9_5_IRQn
 #define INT_IN8_Pin GPIO_PIN_8
 #define INT_IN8_GPIO_Port GPIOB
+#define INT_IN8_EXTI_IRQn EXTI9_5_IRQn
 #define INT_IN7_Pin GPIO_PIN_9
 #define INT_IN7_GPIO_Port GPIOB
+#define INT_IN7_EXTI_IRQn EXTI9_5_IRQn
 #define INT_IN6_Pin GPIO_PIN_0
 #define INT_IN6_GPIO_Port GPIOE
 #define INT_IN6_EXTI_IRQn EXTI0_IRQn
@@ -263,6 +274,11 @@ typedef enum {
   ENABLE_BILL
 } billAccept;
 
+typedef enum {
+  TURNED_OFF,
+  TURNED_ON
+} tempMgmnt;
+
 typedef struct {
   state machineState, lastMachineState;         // автомат состояний
   containerEnum container;                      // общая емкость котейнера
@@ -271,6 +287,8 @@ typedef struct {
   uint16_t suppVoltage;                         // напряжение питания
   billAccept billAccept;                        // запрещено/разрешено принимать деньги
   bool waterMissDetected;                       // true, если обнаружена утечка воды при выдаче
+  tempMgmnt warmer;
+  tempMgmnt cooler;
   
   valveEnum mainValve;                          // состояние магистрального клапана
   valveEnum filterValve;                        // состояние клапана фильтров

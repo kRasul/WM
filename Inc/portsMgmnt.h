@@ -11,14 +11,14 @@
 // 5. Для управления обогревом
 // 6. Для управления охлаждением
 
-#define MAIN_PUMP_SET()         HAL_GPIO_WritePin(PWR1_GPIO_Port, PWR1_Pin, GPIO_PIN_SET)
-#define MAIN_PUMP_CLR()         HAL_GPIO_WritePin(PWR1_GPIO_Port, PWR1_Pin, GPIO_PIN_RESET)
-#define MAIN_VALVE_SET()        HAL_GPIO_WritePin(PWR2_GPIO_Port, PWR2_Pin, GPIO_PIN_SET)
-#define MAIN_VALVE_CLR()        HAL_GPIO_WritePin(PWR2_GPIO_Port, PWR2_Pin, GPIO_PIN_RESET)
-#define CONSUM_PUMP_SET()       HAL_GPIO_WritePin(PWR3_GPIO_Port, PWR3_Pin, GPIO_PIN_SET)
-#define CONSUM_PUMP_CLR()       HAL_GPIO_WritePin(PWR3_GPIO_Port, PWR3_Pin, GPIO_PIN_RESET)
-#define WASH_FILV_SET()         HAL_GPIO_WritePin(PWR4_GPIO_Port, PWR4_Pin, GPIO_PIN_SET)
-#define WASH_FILV_CLR()         HAL_GPIO_WritePin(PWR4_GPIO_Port, PWR4_Pin, GPIO_PIN_RESET)
+#define MAIN_PUMP_SET()         HAL_GPIO_WritePin(PWR2_GPIO_Port, PWR2_Pin, GPIO_PIN_SET)
+#define MAIN_PUMP_CLR()         HAL_GPIO_WritePin(PWR2_GPIO_Port, PWR2_Pin, GPIO_PIN_RESET)
+#define MAIN_VALVE_SET()        HAL_GPIO_WritePin(PWR1_GPIO_Port, PWR1_Pin, GPIO_PIN_SET)
+#define MAIN_VALVE_CLR()        HAL_GPIO_WritePin(PWR1_GPIO_Port, PWR1_Pin, GPIO_PIN_RESET)
+#define CONSUM_PUMP_SET()       HAL_GPIO_WritePin(PWR4_GPIO_Port, PWR4_Pin, GPIO_PIN_SET)
+#define CONSUM_PUMP_CLR()       HAL_GPIO_WritePin(PWR4_GPIO_Port, PWR4_Pin, GPIO_PIN_RESET)
+#define WASH_FILV_SET()         HAL_GPIO_WritePin(PWR3_GPIO_Port, PWR3_Pin, GPIO_PIN_SET)
+#define WASH_FILV_CLR()         HAL_GPIO_WritePin(PWR3_GPIO_Port, PWR3_Pin, GPIO_PIN_RESET)
 #define WARM_SET()              HAL_GPIO_WritePin(PWR5_GPIO_Port, PWR5_Pin, GPIO_PIN_SET)
 #define WARM_CLR()              HAL_GPIO_WritePin(PWR5_GPIO_Port, PWR5_Pin, GPIO_PIN_RESET)
 #define COLD_SET()              HAL_GPIO_WritePin(PWR6_GPIO_Port, PWR6_Pin, GPIO_PIN_SET)

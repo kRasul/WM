@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=D:/YADisk/#1_work/Автомойка самообслуживания/WM_v0.10/IAR_WM_v0.10/Inc
+HeaderPath=D:/YADisk/#1_work/Автомойка самообслуживания/WM_v0.10/WM/Inc
 HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=D:/YADisk/#1_work/Автомойка самообслуживания/WM_v0.10/IAR_WM_v0.10/Src
+SourcePath=D:/YADisk/#1_work/Автомойка самообслуживания/WM_v0.10/WM/Src
 SourceFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;stm32f1xx_it.c;stm32f1xx_hal_msp.c;stm32f1xx_hal_timebase_TIM.c;main.c;
 
 [PreviousLibFiles]

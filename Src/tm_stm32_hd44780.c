@@ -41,7 +41,7 @@
 #define _GG  0xA3
 
 #define _t   0xBF
-#define _d   0xE0
+#define _d   0xE3
 #define _m   0xBC
 #define _l   0xBB
 #define _b   0xB2  
@@ -380,10 +380,10 @@ void printLoseDetected() {
 
 void printNotReady(uint16_t liters){
 //  createRusChars();
-  TM_HD44780_Puts(0, 0, "  HE ");
+  TM_HD44780_Puts(0, 0, " HE ");
   char lit0[2] = {_G, '\0'};
-  TM_HD44780_Puts(5,0, &lit0[0]);
-  TM_HD44780_Puts(6,0, "OTOBO,");
+  TM_HD44780_Puts(4,0, &lit0[0]);
+  TM_HD44780_Puts(5,0, "OTOB, ");
   
   if (liters > 999) liters = 999;
   char lit1[6];
@@ -397,7 +397,7 @@ void printNotReady(uint16_t liters){
   lit1[0] = _L;
   lit1[1] = '.';
   lit1[2] = '\0';
-  TM_HD44780_Puts(15,0, &lit1[0]);
+  TM_HD44780_Puts(14,0, &lit1[0]);
   char lit2[17] = {'B', 'O', _D, 'A', ' ', _F, _I, _L, 'b', 'T', 'P', _Y, 'E', 'T', 'C', _R};    
   TM_HD44780_Puts(0,1, &lit2[0]);
 }
@@ -405,7 +405,7 @@ void printNotReady(uint16_t liters){
 void printWait(uint16_t liters){  
 //  createRusChars();
   // ÃÎÒÎÂÎ: 15Ë.
-  char lit0[17] = {_G, 'O', 'T', 'O', 'B', 'O', ':', ' ', '\0'};
+  char lit0[17] = { ' ', _G, 'O', 'T', 'O', 'B', 'O', ':', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
   TM_HD44780_Puts(0, 0, &lit0[0]);
   
   if (liters > 999) liters = 999;
@@ -416,13 +416,14 @@ void printWait(uint16_t liters){
   lit[3] = ' ';
   lit[4] = '\0';
   TM_HD44780_Puts(10,0, &lit[0]);
-  
   lit0[0] = _L;
   lit0[1] = '.';
   lit0[2] = '\0';  
   TM_HD44780_Puts(14,0, &lit0[0]);    
   
   // ÂÍÅÑÈÒÅ ÎÏËÀÒÓ
+  char lit1[17] = {' ', 'B', 'H', 'E', 'C', _I, 'T', 'E', ' ', 'O', _P, _L, 'A', 'T', _Y, ' ', '\0'};
+  TM_HD44780_Puts(0, 1, &lit1[0]);  
 }
 
 void printPaid(uint16_t rub, uint16_t litersPaid) {
@@ -449,7 +450,7 @@ void printPaid(uint16_t rub, uint16_t litersPaid) {
   lit[2] = '\0';
   TM_HD44780_Puts(14,0, &lit[0]);
 
-  char lit2[17] = {' ', 'H', 'A', _G, 'M', _I, 'T', 'E', ' ', 'C', 'T', 'A', 'P', 'T', ' ', ' ', '\0'};
+  char lit2[17] = {' ', 'H', 'A', _GG, 'M', _I, 'T', 'E', ' ', 'C', 'T', 'A', 'P', 'T', ' ', ' ', '\0'};
   TM_HD44780_Puts(0,1, &lit2[0]);
 }
 

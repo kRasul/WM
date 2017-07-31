@@ -184,49 +184,75 @@ void countOutHandler(){
 
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
-  if (getTimeDiff(sensorsDisabledTime) > TIME_TO_DISABLE_SENSORS) {
-    static uint16_t pinNum = 0;
-    pinNum = GPIO_Pin;
-    if (GPIO_Pin == 2) {}
-    if (GPIO_Pin == 4) {}
-    if (GPIO_Pin == 8) {}
-    if (GPIO_Pin == 16) {}
+  static uint16_t lastPinNum = 0;
+  static timeStr timePulseDetected = {0};
+  
+  static uint16_t c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15,c16;
+  
+  if (GPIO_Pin == lastPinNum && getTimeDiff(timePulseDetected) < 2) return;  
     
-    if (GPIO_Pin == 32) {                       // PE1, R12
-      countContainerHandler();
+  if (getTimeDiff(sensorsDisabledTime) > TIME_TO_DISABLE_SENSORS) {
+    
+    if (GPIO_Pin == 2) {
+                                                // 17
+      c1++;
+    }                  
+    if (GPIO_Pin == 4) {
+      countOutHandler();                        // 18
+      c2++;                                     
+    }                   
+    if (GPIO_Pin == 8) {
+      countLoseHandler();                       // 19
+      c3++;
+    }                  
+    if (GPIO_Pin == 16) {
+      pauseOutHandler();                        // 20
+      c4++;
+    }                 
+    
+    if (GPIO_Pin == 32) {                       
+      countContainerHandler();                  // 21
+      c5++;
     }
-    if (GPIO_Pin == 1) {                        // PE0, R13
-      countOutHandler();
+    
+    if (GPIO_Pin == 1) {                        // 16 || 17, PE0, R13
+      c6++;
     }
     if (GPIO_Pin == 128) {                      // PB9, R15
-      countLoseHandler();
+      c7++;
     }
-    if (GPIO_Pin == 256) {                      // PB8, R19
-      pauseOutHandler();
+    if (GPIO_Pin == 512) {                      // PB8, R19
+      c8++;
     }
     
-    if (GPIO_Pin == 1024) {}
-    if (GPIO_Pin == 2048) {}
-    if (GPIO_Pin == 4096) {}
+    if (GPIO_Pin == 1024) {c9++;}
+    if (GPIO_Pin == 2048) {c10++;}
+    if (GPIO_Pin == 4096) {c11++;}
   }
   
   if (getTimeDiff(buttonsDisabledTime) > TIME_TO_DISABLE_BUTTONS) {  
-    if (GPIO_Pin == 256) {                // R19
-      userButton = true;
+    if (GPIO_Pin == 256) {                      // 14, R19
+      userButton = true; 
+      c12++;
     }
-    if (GPIO_Pin == 8192) {               // S1
-      servUpButton = true;
+    if (GPIO_Pin == 8192) {                     // S1
+      servUpButton = true; 
+      c13++;
     }
-    if (GPIO_Pin == 16384) {              // S2
-      servRightButton = true;
+    if (GPIO_Pin == 16384) {                    // S2
+      servRightButton = true; 
+      c14++;
     }
-    if (GPIO_Pin == 32768) {              // S3
-      servDownButton = true;
+    if (GPIO_Pin == 32768) {                    // S3
+      servDownButton = true; 
+      c15++;
     }
-    if (GPIO_Pin == 64) {                 // S4
-      servLeftButton = true;
+    if (GPIO_Pin == 64) {                       // S4
+      servLeftButton = true; 
+      c16++;
     }
   }
+  lastPinNum = GPIO_Pin;
 }
 
 

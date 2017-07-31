@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\common\bin\cspybat" -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\IAR_WM_v0.10\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.general.xcl" --backend -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\IAR_WM_v0.10\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\common\bin\cspybat" -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.general.xcl" --backend -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\common\bin\cspybat" -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\IAR_WM_v0.10\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.general.xcl" "--debug_file=%~1" --backend -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\IAR_WM_v0.10\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\common\bin\cspybat" -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.general.xcl" "--debug_file=%~1" --backend -f "D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM\settings\IAR_WM_v0.IAR_WM_v0.10.driver.xcl" 
 
 @echo off 
 :end

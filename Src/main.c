@@ -248,6 +248,7 @@ int main(void)
   clrAll();
   while(1) {
     static timeStr lastTime = {0};
+    uartDataExchMgmnt();
     if (getTimeDiff(lastTime) > TIME_BETWEEN_PORT_CHANGES) {      
       writeTime(&lastTime);
       setupIn();

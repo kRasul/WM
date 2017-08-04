@@ -205,6 +205,10 @@
 
 #include "stdbool.h"
 
+#define DEBUG_PCB_MODE
+#define DEBUG_TIME_BETWEEN              500
+#define TIME_BETWEEN_PORT_CHANGES       100
+
 #define VAL_FOR_10_LITERS               5500 
 #define LOW_TH_VOL_SENS                 4000
 #define HIGH_TH_VOL_SENS                7000
@@ -325,6 +329,16 @@ typedef struct {
 extern void delayMicroseconds(uint32_t );       // assembler delay.s
 extern void delayMilliseconds(uint32_t );       // assembler delay.s
 void prepareToTransition();
+
+void setUpCheckGPIO();
+void clrAll();
+
+void setupIn();
+void setupGPIOOut();
+void setupULN2003Out();
+void setupMOSFET();
+void setupPwrOut();
+void setupW26();
 
 /* USER CODE END Private defines */
 

@@ -232,6 +232,11 @@ void printNotReady(uint16_t liters);
 
 void printLoseDetected();
 
+void printAdminUp();
+void printAdminDown();
+void printAdminLeft();
+void printAdminRight();
+
 /**
  * @}
  */

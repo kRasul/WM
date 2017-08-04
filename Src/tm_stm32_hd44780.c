@@ -371,6 +371,7 @@ void reInit() {
 }*/
 
 
+
 void printLoseDetected() {
 //  createRusChars();
   TM_HD44780_Puts(0, 1, "  HET TAP !     ");
@@ -426,6 +427,7 @@ void printWait(uint16_t liters){
   TM_HD44780_Puts(0, 1, &lit1[0]);  
 }
 
+      
 void printPaid(uint16_t rub, uint16_t litersPaid) {
   char lit[6];
   if (rub > 999) rub = 999;
@@ -710,3 +712,31 @@ void printService(uint8_t curs){
   }
 }
 
+
+void printAdminUp() {
+  static char data[2] = "1";
+  TM_HD44780_Puts(0, 0, &data[0]);
+  data[0]++;
+  if (data[0] > '9') data[0] = '1';  
+}
+
+void printAdminDown() {
+  static char data[2] = "1";
+  TM_HD44780_Puts(0, 1, &data[0]);
+  data[0]++;
+  if (data[0] > '9') data[0] = '1';  
+}
+      
+void printAdminLeft() {
+  static char data[2] = "1";
+  TM_HD44780_Puts(6, 0, &data[0]);
+  data[0]++;
+  if (data[0] > '9') data[0] = '1';  
+}
+
+void printAdminRight() { 
+  static char data[2] = "1";
+  TM_HD44780_Puts(6, 1, &data[0]);
+  data[0]++;
+  if (data[0] > '9') data[0] = '1';  
+}

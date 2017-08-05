@@ -330,15 +330,6 @@ extern void delayMicroseconds(uint32_t );       // assembler delay.s
 extern void delayMilliseconds(uint32_t );       // assembler delay.s
 void prepareToTransition();
 
-void setUpCheckGPIO();
-void clrAll();
-
-void setupIn();
-void setupGPIOOut();
-void setupULN2003Out();
-void setupMOSFET();
-void setupPwrOut();
-void setupW26();
 
 /* USER CODE END Private defines */
 

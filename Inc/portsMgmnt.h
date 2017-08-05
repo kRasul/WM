@@ -45,12 +45,12 @@
 #define INHIBIT_EN()            do {INHIBIT_C_SET(); INHIBIT_M_SET(); wa.billAccept = ENABLE_BILL;}     while(0)            
 #define INHIBIT_DIS()           do {INHIBIT_C_CLR(); INHIBIT_M_CLR(); wa.billAccept = INHIBIT_BILL;}    while(0)   
 
-#define READ_DOOR_TUMPER()      HAL_GPIO_ReadPin(NINT_IN15_GPIO_Port, NINT_IN15_Pin)            // R1
-#define READ_MONEY_TUMPER()     HAL_GPIO_ReadPin(NINT_IN16_GPIO_Port, NINT_IN16_Pin)            // R2
-#define READ_MAG_PRESURE()      HAL_GPIO_ReadPin(NINT_IN17_GPIO_Port, NINT_IN17_Pin)            // R3
-#define READ_FREE_INPUT()       HAL_GPIO_ReadPin(NINT_IN18_GPIO_Port, NINT_IN18_Pin)            // R4
-#define READ_10L_OUT()          HAL_GPIO_ReadPin(NINT_IN19_GPIO_Port, NINT_IN19_Pin)            // R5
-#define READ_10L_IN()           HAL_GPIO_ReadPin(NINT_IN20_GPIO_Port, NINT_IN20_Pin)            // R6
+#define READ_DOOR_TUMPER()      HAL_GPIO_ReadPin(NINT_IN15_GPIO_Port, NINT_IN15_Pin)            // 7, R1, PD6
+#define READ_MONEY_TUMPER()     HAL_GPIO_ReadPin(NINT_IN16_GPIO_Port, NINT_IN16_Pin)            // 6, R2, PD5
+#define READ_MAG_PRESURE()      HAL_GPIO_ReadPin(NINT_IN17_GPIO_Port, NINT_IN17_Pin)            // 5, R3, PD4
+#define READ_FREE_INPUT()       HAL_GPIO_ReadPin(NINT_IN18_GPIO_Port, NINT_IN18_Pin)            // 4, R4, PD3
+#define READ_10L_OUT()          HAL_GPIO_ReadPin(NINT_IN19_GPIO_Port, NINT_IN19_Pin)            // 3, R5, PD2
+#define READ_10L_IN()           HAL_GPIO_ReadPin(NINT_IN20_GPIO_Port, NINT_IN20_Pin)            // 2, R6, PD1
 
 void checkTumperDoor();
 void checkMagistralPressure();

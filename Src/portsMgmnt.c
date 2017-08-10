@@ -7,6 +7,7 @@
 
 extern machineParameters wa;                           // состо€ние автомата
 extern counters cnt;
+extern uint32_t valFor10LitCalibr;
 
 volatile bool userButton = false,       servUpButton = false,           servDownButton = false,
               servLeftButton = false,   servRightButton = false;
@@ -77,12 +78,12 @@ static uint32_t containerCounter = 0;
 // ѕростой расходомер на входе в контейнер
 void countContainerHandler(){
   containerCounter++;
-  cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)VAL_FOR_10_LITERS); 
+  cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
 }
 
 void setupDefaultLitersVolume(uint16_t volume) {
-  containerCounter = VAL_FOR_10_LITERS/10 * volume;
-  cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)VAL_FOR_10_LITERS); 
+  containerCounter = valFor10LitCalibr/10 * volume;
+  cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
 }
 
 
@@ -111,7 +112,7 @@ void countLoseHandler() {
   static uint32_t loseCounter = 0;
   
   loseCounter++; 
-  cnt.milLitloseCounter = (uint32_t)((double)loseCounter * (10000.0)/(double)VAL_FOR_10_LITERS); 
+  cnt.milLitloseCounter = (uint32_t)((double)loseCounter * (10000.0)/(double)valFor10LitCalibr); 
 
   if (getTimeDiff(lastTime) < 500) fastPulseLose++;
   else fastPulseLose = 0;
@@ -120,15 +121,15 @@ void countLoseHandler() {
   if (fastPulseLose > FAST_PULSES_NUM_TRESHOLD) {
     wa.container = FULL;                                                        // we know container is full
 /*    wa.currentContainerVolume = maxContainerVolume;    
-    containerCounter = VAL_FOR_10_LITERS/10 * volume;
+    containerCounter = valFor10LitCalibr/10 * volume;
     while (cnt.milLitContIn < cnt.milLitWentOut + wa.container * 1000) {        // then milLitContIn have to be bigger then milLitWentOut on container volume
       containerCounter++; 
-      cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)VAL_FOR_10_LITERS); 
+      cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
     }
 */    
-    containerCounter += VAL_FOR_10_LITERS/10 * 
+    containerCounter += valFor10LitCalibr/10 * 
       (maxContainerVolume - ((cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000));
-    cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)VAL_FOR_10_LITERS); 
+    cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
     wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000;
   }
 }
@@ -138,64 +139,72 @@ static uint32_t outCounter = 0;
 void countOutHandler(){
   
   outCounter++;
-  cnt.milLitWentOut = (uint32_t)((double)outCounter * (10000.0)/(double)VAL_FOR_10_LITERS); 
+  cnt.milLitWentOut = (uint32_t)((double)outCounter * (10000.0)/(double)valFor10LitCalibr); 
 }
 
 
 // 10 литровый расходомер на выходе у потребител€
 void checkOut10Counter(){
-  static uint8_t inData[10];
+  static uint8_t inDataOUT[10];
   static uint8_t p = 0, swchr = 0;
   
   static uint8_t temp = 0;
   if (temp++ < 5) return;
   temp = 0;
   
-  inData[p++] = READ_10L_OUT();
+  inDataOUT[p++] = READ_10L_OUT();
   if (p > 9) p = 0;
   
   static uint32_t out101 = 0, out102 = 0;
   
   static int8_t lastInState = -100;
-  if ((lastInState == -100 || swchr == 1) && !(inData[0]+inData[1]+inData[2]+inData[3]+inData[4]+inData[5]+inData[6]+inData[7]+inData[8]+inData[9])) {
+  if ((lastInState == -100 || swchr == 1) && !(inDataOUT[0]+inDataOUT[1]+inDataOUT[2]+inDataOUT[3]+inDataOUT[4]+inDataOUT[5]+inDataOUT[6]+inDataOUT[7]+inDataOUT[8]+inDataOUT[9])) {
     swchr = 0;
-    out101 = outCounter;
-    if (lastInState == -101) cnt.out10Counter++;
+    if (lastInState == -101) {
+      cnt.out10Counter++;
+      out101 = outCounter;
+    }
     if (lastInState == -100) lastInState = -101;
   }
-  if ((lastInState == -100 || swchr == 0) && (inData[0]+inData[1]+inData[2]+inData[3]+inData[4]+inData[5]+inData[6]+inData[7]+inData[8]+inData[9]) == 10) {
+  if ((lastInState == -100 || swchr == 0) && (inDataOUT[0]+inDataOUT[1]+inDataOUT[2]+inDataOUT[3]+inDataOUT[4]+inDataOUT[5]+inDataOUT[6]+inDataOUT[7]+inDataOUT[8]+inDataOUT[9]) == 10) {
     swchr = 1;
-    out102 = outCounter;
-    if (lastInState == -110) cnt.out10Counter++;
+    if (lastInState == -110) {
+      cnt.out10Counter++;
+      out102 = outCounter;
+    }
     if (lastInState == -100) lastInState = -110;
   }
 }
 
 // 10 литровый расходомер на входе системы
 void checkInput10Counter(){
-  static uint8_t inData[10];
+  static uint8_t inDataIN[10];
   static uint8_t p = 0, swchr = 0;
   
   static uint8_t temp = 0;
   if (temp++ < 5) return;
   temp = 0;
   
-  inData[p++] = READ_10L_IN();
+  inDataIN[p++] = READ_10L_IN();
   if (p > 9) p = 0;
   
   static uint32_t in101 = 0, in102 = 0;
   
   static int8_t lastInState = -100;
-  if ((lastInState == -100 || swchr == 1) && !(inData[0]+inData[1]+inData[2]+inData[3]+inData[4]+inData[5]+inData[6]+inData[7]+inData[8]+inData[9])) {
+  if ((lastInState == -100 || swchr == 1) && !(inDataIN[0]+inDataIN[1]+inDataIN[2]+inDataIN[3]+inDataIN[4]+inDataIN[5]+inDataIN[6]+inDataIN[7]+inDataIN[8]+inDataIN[9])) {
     swchr = 0;
-    in101 = containerCounter;
-    if (lastInState == -101) cnt.input10Counter++;
+    if (lastInState == -101) {
+      cnt.input10Counter++;
+      in101 = containerCounter;
+    }
     if (lastInState == -100) lastInState = -101;
   }
-  if ((lastInState == -100 || swchr == 0) && (inData[0]+inData[1]+inData[2]+inData[3]+inData[4]+inData[5]+inData[6]+inData[7]+inData[8]+inData[9]) == 10) {
+  if ((lastInState == -100 || swchr == 0) && (inDataIN[0]+inDataIN[1]+inDataIN[2]+inDataIN[3]+inDataIN[4]+inDataIN[5]+inDataIN[6]+inDataIN[7]+inDataIN[8]+inDataIN[9]) == 10) {
     swchr = 1;
-    in102 = containerCounter;
-    if (lastInState == -110) cnt.input10Counter++;
+    if (lastInState == -110) {
+      cnt.input10Counter++;
+      in102 = containerCounter;
+    }
     if (lastInState == -100) lastInState = -110;
   }
 }

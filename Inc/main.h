@@ -209,8 +209,7 @@
 #define DEBUG_TIME_BETWEEN              500
 #define TIME_BETWEEN_PORT_CHANGES       100
 
-//#define VAL_FOR_10_LITERS               5500 
-#define VAL_FOR_10_LITERS               3200
+//#define valFor10LitCalibr               5500 
 #define LOW_TH_VOL_SENS                 4000
 #define HIGH_TH_VOL_SENS                7000
 #define FAST_PULSES_NUM_TRESHOLD        3

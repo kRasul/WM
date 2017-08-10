@@ -74,9 +74,9 @@ filtersStr filters;                             // показания счетчиков (приходят
 moneyStats money;                               // оплачено за все время, оплачено сейчас, осталось отработать
 counters cnt = {0};
 
-
+uint32_t valFor10LitCalibr = 4000;              // количество импульсов расходомера на 10Л. используется для расчетов выдачи воды
 float waterPrice = 400.0;                       // цена литра, в копейках
-uint8_t outPumpNoWaterStopTime = 10;             // секунд до остановки выходного насоса, если нет воды
+uint8_t outPumpNoWaterStopTime = 10;            // секунд до остановки выходного насоса, если нет воды
 uint8_t startContVolume = 15;                   // минимальный объем воды в контейнере
 uint8_t containerMinVolume = 3;                 // минимальный объем воды в контейнере
 uint8_t maxContainerVolume = 95;                // объем контейнера с водой

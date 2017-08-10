@@ -436,12 +436,12 @@ void printPaid(uint16_t rub, uint16_t litersPaid) {
   lit[2] = rub%10 + 0x30;
   lit[3] = 0;
   TM_HD44780_Puts(0,0, &lit[0]);
-  char lit1[] = {' ', 'P', _Y, _B, '.', '-', '\0'};
+  char lit1[] = {' ', 'P', _Y, _B, '.', ' ', '\0'};
   TM_HD44780_Puts(3,0, &lit1[0]);
   
   if (litersPaid > 999) litersPaid = 999;
   lit[0] = litersPaid/100 + 0x30;           if (lit[0] == '0') lit[0] = ' ';
-  lit[1] = (litersPaid%100)/10 + 0x30;      if (lit[1] == '0' && lit[0] == ' ') lit[1] = ' ';
+  lit[1] = (litersPaid%100)/10 + 0x30;
   lit[2] = '.';
   lit[3] = litersPaid%10 + 0x30;    
   lit[4] = 0;
@@ -456,13 +456,15 @@ void printPaid(uint16_t rub, uint16_t litersPaid) {
   TM_HD44780_Puts(0,1, &lit2[0]);
 }
 
-void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
+void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub, bool pause){
 //  createRusChars();
   char let0[17] = {' ', 'B', _Ib, _D, 'A', 'H', 'O', ':', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
-  TM_HD44780_Puts(0,0, &let0[0]);
+  char let1[17] = {' ', _P, 'A', _Y, '3', 'A', '.', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+  
+  if (pause) TM_HD44780_Puts(0,0, &let1[0]);
+  else TM_HD44780_Puts(0,0, &let0[0]);
 
-  char lit[5];
-  lit[4] = '\0';
+  char lit[6];
   if (liters > 999) liters = 999;
   if (liters > 99) {                            // >10.0..99.9 liters - 100 - 999   
     lit[0] = liters/100 + 0x30;                 if (lit[0] == '0') lit[0] = ' ';
@@ -476,6 +478,7 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
     lit[2] = ',';
     lit[3] = liters%10 + 0x30;
   }
+  lit[4] = '\0';
   TM_HD44780_Puts(9,0, &lit[0]);
   lit[0] = _L;
   lit[1] = '.';
@@ -495,13 +498,15 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
     lit[2] = ',';
     lit[3] = milLitOut%10 + 0x30;
   }
+  lit[4] = '\0';  
   
   TM_HD44780_Puts(0,1, &lit[0]);  
-  lit[0] = _L;
-  lit[1] = '.';
-  lit[2] = '-';
-  lit[3] = '\0';
-  TM_HD44780_Puts(3,1, &lit[0]);  
+  lit[0] = ' ';
+  lit[1] = _L;
+  lit[2] = '.';
+  lit[3] = '-';
+  lit[4] = '\0';
+  TM_HD44780_Puts(4,1, &lit[0]);  
   
   lit[0] = rub/100 + 0x30;
   if (lit[0] == '0') lit[0] = ' ';      if (lit[0] == '0') lit[0] = ' ';
@@ -510,7 +515,7 @@ void printGiven(uint32_t milLitOut, uint32_t liters, uint32_t rub){
   lit[3] = '\0';
   TM_HD44780_Puts(8,1, &lit[0]);
   
-  char lit1[] = {' ', 'P', _Y, _B, '\0'};
+  char lit1[] = {' ', 'P', _Y, _B, '.','\0'};
   TM_HD44780_Puts(11,1, &lit1[0]);
 }
 

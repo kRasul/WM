@@ -76,7 +76,7 @@ counters cnt = {0};
 
 
 float waterPrice = 400.0;                       // цена литра, в копейках
-uint8_t outPumpNoWaterStopTime = 3;             // секунд до остановки выходного насоса, если нет воды
+uint8_t outPumpNoWaterStopTime = 10;             // секунд до остановки выходного насоса, если нет воды
 uint8_t startContVolume = 15;                   // минимальный объем воды в контейнере
 uint8_t containerMinVolume = 3;                 // минимальный объем воды в контейнере
 uint8_t maxContainerVolume = 95;                // объем контейнера с водой
@@ -103,48 +103,85 @@ static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN 0 */
 
 void containerMgmnt() {
-  wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut/* - cnt.milLitloseCounter*/) / 1000;
+  wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000;
   if (cnt.milLitWentOut + (maxContainerVolume-5)*1000 > cnt.milLitContIn) wa.container = NOT_FULL;
   checkMagistralPressure();
   if (wa.magistralPressure == HI_PRESSURE && wa.container != FULL) {
-    if (wa.mainPump == WORKING) return;
-    delayMilliseconds(100);
-    if (wa.magistralPressure == HI_PRESSURE) {
-      MAINP_ON();
-      MAINV_ON();
-//      FILTV_ON();
+    if (wa.mainPump != WORKING) {
+      delayMilliseconds(100);
+      if (wa.magistralPressure == HI_PRESSURE) {
+        MAINV_ON();
+        MAINP_ON();
+//        FILTV_ON();
+      }
     }
   }
+  
   if (wa.magistralPressure == NO_PRESSURE || wa.container == FULL) {
-    if (wa.mainPump == STOPPED) return;
-    MAINP_OFF();
-    MAINV_OFF();
-//    FILTV_OFF();
+    if (wa.mainPump != STOPPED) {
+      MAINP_OFF();
+      MAINV_OFF();
+//      FILTV_OFF();
+    }
   }  
 }
 
+void buttonMgmnt(){
+  timeStr time = getCurTime();
+  if (wa.machineState == NOT_READY)   TURN_BUT_LED_OFF();
+  if (wa.machineState == WAIT)        {
+    TURN_BUT_LED_ON();
+  }  
+  if (wa.machineState == JUST_PAID)   {
+    if (time.msec %250 > 125) TURN_BUT_LED_ON();
+    else TURN_BUT_LED_OFF();
+  }
+  if (wa.machineState == WORK) {
+    if (wa.consumerPump == STOPPED) {
+      if (time.msec %500 > 250) TURN_BUT_LED_ON();
+      else TURN_BUT_LED_OFF();
+    }
+    else {
+      if (time.sec % 2) TURN_BUT_LED_ON();
+      else TURN_BUT_LED_OFF();
+    }
+  }
+  if (wa.machineState == NO_TARE)     {
+    if (time.msec %250 > 125) TURN_BUT_LED_ON();
+    else TURN_BUT_LED_OFF();
+  }
+  if (wa.machineState == CONFIG)      TURN_BUT_LED_OFF();
+  if (wa.machineState == WASH_FILTER) TURN_BUT_LED_OFF();
+  if (wa.machineState == SERVICE)     TURN_BUT_LED_OFF();
+  if (wa.machineState == FREE)        TURN_BUT_LED_OFF();
+}
+
 void outPumpMgmnt() {
-  static timeStr timeCheck = {0};
+  static timeStr zeroDetTime = {0}, timeCheck = {0};
   static uint32_t lastMillilit = 0;
+  if (!(wa.machineState == NO_TARE || wa.machineState == WORK)) return;
+
   if (wa.waterMissDetected == true) {
     if (wa.consumerPump == WORKING) CONSUMP_OFF();
     if (getTimeDiff(waterMissDetectedTime) > 500) {
       wa.waterMissDetected = false;
     }
-  }      
-  if (getTimeDiff(timeCheck) > 1000) {
+  }
+  
+  static uint8_t noWaterOut = 0;
+  if (getTimeDiff(timeCheck) > 500 && wa.consumerPump == WORKING) {
     writeTime(&timeCheck);
-    if (cnt.milLitWentOut > lastMillilit + 10) lastMillilit = cnt.milLitWentOut;      
-    else 
-      if (getTimeDiff(timeConsPumpStarted) > outPumpNoWaterStopTime*1000) {
-        wa.currentContainerVolume = 0;
-        if (wa.consumerPump == WORKING) CONSUMP_OFF();
-      }
+    if (cnt.milLitWentOut > lastMillilit + 10) noWaterOut = 0;
+    else if (noWaterOut < 255) noWaterOut++;
+  }
+  
+  if (noWaterOut > 3) {
+    if (wa.consumerPump == WORKING) CONSUMP_OFF();
   }
 }
 
 void lcdMgmnt() {
-  static timeStr refreshLCDtime = {0}; 
+  static timeStr refreshLCDtime = {0};
   if (getTimeDiff(refreshLCDtime) > 250) {
     writeTime(&refreshLCDtime);
     if (wa.machineState == NOT_READY)   printNotReady(wa.currentContainerVolume);
@@ -154,21 +191,23 @@ void lcdMgmnt() {
       printPaid(temp/100, (uint16_t)(((float)temp*10.0)/waterPrice));
     }
     if (wa.machineState == WORK) {
+      bool pause = !(bool)wa.consumerPump;
       wa.litersLeftFromSession = (uint32_t)((money.leftFromPaid*10.0)/waterPrice);
-      printGiven((uint32_t)wa.litersLeftFromSession, (cnt.milLitWentOut - lastMilLitWentOut) / 100, (uint32_t) money.leftFromPaid/100);
+      printGiven((uint32_t)wa.litersLeftFromSession, (cnt.milLitWentOut - lastMilLitWentOut) / 100, (uint32_t) money.leftFromPaid/100, pause);
     }
     if (wa.machineState == NO_TARE)     printLoseDetected();
     if (wa.machineState == CONFIG)      TM_HD44780_Clear();
     if (wa.machineState == WASH_FILTER) TM_HD44780_Clear();
     if (wa.machineState == SERVICE)     TM_HD44780_Clear();
     if (wa.machineState == FREE)        TM_HD44780_Clear();
-  }    
+  }
 } 
 
 void prepareToTransition (){
-  if (wa.machineState == NOT_READY){
-    INHIBIT_DIS();
-  }
+  disableButtonsForTime();
+  disableSensorsForTime();  
+  
+  if (wa.machineState == NOT_READY) INHIBIT_DIS();
   else INHIBIT_EN();
   
   if (wa.machineState == WAIT){    
@@ -179,16 +218,12 @@ void prepareToTransition (){
   
   if (wa.machineState == WORK) {
     if (wa.lastMachineState == JUST_PAID) lastMilLitWentOut = cnt.milLitWentOut;
-    disableButtonsForTime();
-    disableSensorsForTime();  
     CONSUMP_ON();
   }
   
   if (wa.machineState == NO_TARE) {
     writeTime(&waterMissDetectedTime);
     if (wa.consumerPump == WORKING) {
-      disableButtonsForTime();  
-      disableSensorsForTime();  
       CONSUMP_OFF();
     }
   }
@@ -234,36 +269,38 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
   initUART();
-  TM_HD44780_Init(16, 2, 1000);
+  TM_HD44780_Init(16, 2, 3000);
   wa.machineState = WAIT;
   wa.lastMachineState = FREE;
+  prepareToTransition();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  //input10Counter = 0;
-  //out10Counter = 0;
-  cnt.milLitContIn = startContVolume * 1000;
 #ifdef DEBUG_PCB_MODE
   initCheckLoop();
   checkLoop();
 #endif
-  while (1) {}
+  setupDefaultLitersVolume(55);
+  while (1)
   {
 ////// MANAGE STUFF    
-  //  containerMgmnt();
+    containerMgmnt();
     uartDataExchMgmnt();
     lcdMgmnt();
+    outPumpMgmnt();
+    buttonMgmnt();
+    
     if (wa.machineState == WAIT) {
     }
     if (wa.machineState == NOT_READY) {
     }
+    
     if (wa.machineState == WORK) {
       if (wa.waterMissDetected == true){
         wa.machineState = NO_TARE;
         prepareToTransition();
       }
-      outPumpMgmnt();
       money.leftFromPaid = money.sessionPaid - (((double)cnt.milLitWentOut - (double)lastMilLitWentOut) / 1000.0) * waterPrice;      
       if (money.leftFromPaid <= 0) {
         wa.machineState = WAIT;
@@ -288,28 +325,28 @@ int main(void)
       prepareToTransition();
     }    
 ////// BUTTONS PROCESSING        
-    if (isUserButtonPressed()) {
-      if (wa.machineState == JUST_PAID) {
-        wa.machineState = WORK;
-        prepareToTransition();
-      }
-      if (wa.machineState == WORK) {
-        disableSensorsForTime();
-        if (wa.consumerPump == WORKING) CONSUMP_OFF();
-        else CONSUMP_ON();
-      }
-      if (wa.machineState == NO_TARE && getTimeDiff(waterMissDetectedTime) > 1000) {
-        wa.machineState = WORK;
-        prepareToTransition();
-      } 
+    if (isUserButtonPressed() && wa.machineState == JUST_PAID) {
       disableButtonsForTime();  
+      wa.machineState = WORK;
+      prepareToTransition();
+      clrUserButton();
+    }
+    if (isUserButtonPressed() && wa.machineState == WORK) {
+      disableButtonsForTime();  
+      disableSensorsForTime();
+      clrUserButton();
+      if (wa.consumerPump == WORKING) CONSUMP_OFF();
+      else CONSUMP_ON();
+    }
+    if (isUserButtonPressed() && wa.machineState == NO_TARE && getTimeDiff(waterMissDetectedTime) > 1000) {
+      wa.machineState = WORK;
+      prepareToTransition();
       clrUserButton();
     } 
-    if (isAdminUpButtonPressed()) {
-      
-      disableButtonsForTime();  
-      clrServUpButton();
+    if (isUserButtonPressed() && wa.machineState == WAIT) {
+      clrUserButton();
     }
+    
     if (isAdminDownButtonPressed()) {
       
       disableButtonsForTime();  

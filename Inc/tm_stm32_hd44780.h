@@ -220,7 +220,7 @@ void printWait(uint16_t liters);
 
 void printPaid(uint16_t , uint16_t); 
 
-void printGiven(uint32_t, uint32_t, uint32_t);
+void printGiven(uint32_t, uint32_t, uint32_t, bool);
 
 void printFinish();
 

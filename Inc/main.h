@@ -213,7 +213,8 @@
 #define LOW_TH_VOL_SENS                 4000
 #define HIGH_TH_VOL_SENS                7000
 #define FAST_PULSES_NUM_TRESHOLD        3
-
+#define TIME_TO_STOP_CONSUM_PUMP_IF_NO_WATER    10*2
+    
 typedef struct {
   uint32_t totalPaid;
   volatile uint32_t sessionPaid;

@@ -37,13 +37,17 @@
 
 /* USER CODE BEGIN 0 */
 #include "timeMgmnt.h"
+#include "main.h"
 #include "moneyAcceptMgmnt.h"
 #include "portsMgmnt.h"
+#include "timeMgmnt.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
+extern machineParameters wa;                           // состояние автомата
+extern counters cnt;
 
 /******************************************************************************/
 /*            Cortex-M3 Processor Interruption and Exception Handlers         */ 
@@ -295,6 +299,48 @@ void TIM3_IRQHandler(void)
   checkMagistralPressure();
   checkOut10Counter();
   checkInput10Counter();
+  
+  static pumpEnum lastConsumPump = STOPPED;
+  static uint16_t millisCounter = 0;
+  if (lastConsumPump != wa.consumerPump) {
+    lastConsumPump = wa.consumerPump;
+    millisCounter = 0;
+  }
+  if (wa.consumerPump == STOPPED) CONSUM_PUMP_CLR(); 
+  else {
+    if (millisCounter >= 8000) CONSUM_PUMP_SET();
+    else {
+      bool set = false;
+      millisCounter++;
+      if (millisCounter % 250 < 50) set = true;
+      if (millisCounter % 250 < 100 && millisCounter > 2000) set = true;
+      if (millisCounter % 250 < 150 && millisCounter > 4000) set = true;
+      if (millisCounter % 250 < 200 && millisCounter > 6000) set = true;
+      if (set) CONSUM_PUMP_SET(); 
+      else CONSUM_PUMP_CLR();
+    }
+  }
+  
+  timeStr time = getCurTime();
+  if (wa.machineState == JUST_PAID)   {
+    bool set, write;
+    if (time.sec%2) set = false; 
+    else set = true;
+    write = !set;
+    uint16_t timePart = time.msec % 10;
+    if (timePart == 0 && time.msec > 10) set = write;    
+    if (time.msec > timePart * 100) set = write;
+    if (set) TURN_BUT_LED_ON();
+    else TURN_BUT_LED_OFF();
+  }
+
+  if (wa.machineState == WORK) {
+    if (wa.consumerPump == STOPPED) TURN_BUT_LED_ON();
+    else {
+      if (cnt.milLitWentOut % 20 < 10) TURN_BUT_LED_ON();
+      else TURN_BUT_LED_OFF();
+    }
+  }
   
   /* USER CODE END TIM3_IRQn 1 */
 }

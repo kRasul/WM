@@ -379,44 +379,58 @@ void printLoseDetected() {
   TM_HD44780_Puts(9, 1, &lit[0]);
 }
 
-void printNotReady(uint16_t liters){
+void printNotReady(uint32_t lits){
 //  createRusChars();
-  TM_HD44780_Puts(0, 0, " HE ");
+  TM_HD44780_Puts(0, 0, "HE ");
   char lit0[2] = {_G, '\0'};
-  TM_HD44780_Puts(4,0, &lit0[0]);
-  TM_HD44780_Puts(5,0, "OTOB, ");
+  TM_HD44780_Puts(3,0, &lit0[0]);
+  TM_HD44780_Puts(4,0, "OTOB, ");
   
-  if (liters > 999) liters = 999;
-  char lit1[6];
-  lit1[0] = liters/100 + 0x30;           if (lit1[0] == '0') lit1[0] = ' ';
-  lit1[1] = (liters%100)/10 + 0x30;      if (lit1[1] == '0' && lit1[0] == ' ') lit1[1] = ' ';
-  lit1[2] = liters%10 + 0x30;    
-  lit1[3] = ' ';
-  lit1[4] = '\0';
+  if (lits > 9999) lits = 9999;
+  char lit[5];
+  uint32_t liters = lits / 100;
+  lit[0] = liters/100 + 0x30;           if (lit[0] == '0') lit[0] = ' ';
+  lit[1] = (liters%100)/10 + 0x30;      if (lit[1] == '0' && lit[0] == ' ') lit[1] = ' ';
+  lit[2] = liters%10 + 0x30;    
+  lit[3] = '\0';
+  TM_HD44780_Puts(9,0, &lit[1]);
+  liters = lits % 100;
+  lit[0] = ',';
+  lit[1] = liters/10 + 0x30;
+  lit[2] = liters%10 + 0x30;
+  lit[3] = '\0';
+  TM_HD44780_Puts(11,0, &lit[0]);
+    
+  lit0[0] = _L;
+  lit0[1] = '.';
+  lit0[2] = '\0';  
+  TM_HD44780_Puts(14,0, &lit0[0]);    
   
-  TM_HD44780_Puts(10,0, &lit1[0]);
-  lit1[0] = _L;
-  lit1[1] = '.';
-  lit1[2] = '\0';
-  TM_HD44780_Puts(14,0, &lit1[0]);
   char lit2[17] = {'B', 'O', _D, 'A', ' ', _F, _I, _L, 'b', 'T', 'P', _Y, 'E', 'T', 'C', _R};    
   TM_HD44780_Puts(0,1, &lit2[0]);
 }
 
-void printWait(uint16_t liters){  
+void printWait(uint32_t lits){  
 //  createRusChars();
   // ÃÎÒÎÂÎ: 15Ë.
-  char lit0[17] = { ' ', _G, 'O', 'T', 'O', 'B', 'O', ':', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+  char lit0[17] = { ' ', 'B', ' ', _B, 'A', 'K', 'E', ':', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
   TM_HD44780_Puts(0, 0, &lit0[0]);
   
-  if (liters > 999) liters = 999;
+  if (lits > 99999) lits = 99999;
   char lit[5];
+  uint32_t liters = lits / 100;
   lit[0] = liters/100 + 0x30;           if (lit[0] == '0') lit[0] = ' ';
   lit[1] = (liters%100)/10 + 0x30;      if (lit[1] == '0' && lit[0] == ' ') lit[1] = ' ';
   lit[2] = liters%10 + 0x30;    
-  lit[3] = ' ';
-  lit[4] = '\0';
-  TM_HD44780_Puts(10,0, &lit[0]);
+  lit[3] = '\0';
+  TM_HD44780_Puts(8,0, &lit[0]);
+  liters = lits % 100;
+  lit[0] = ',';
+  lit[1] = liters/10 + 0x30;
+  lit[2] = liters%10 + 0x30;
+  lit[3] = '\0';
+  TM_HD44780_Puts(11,0, &lit[0]);
+    
   lit0[0] = _L;
   lit0[1] = '.';
   lit0[2] = '\0';  

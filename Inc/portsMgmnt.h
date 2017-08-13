@@ -63,8 +63,8 @@
 
 #define MAINP_ON()              do {wa.mainPump = WORKING; disableSensorsForTime(); MAIN_PUMP_SET();} while(0)       
 #define MAINP_OFF()             do {wa.mainPump = STOPPED; disableSensorsForTime(); MAIN_PUMP_CLR();} while(0)       
-#define CONSUMP_ON()            do {wa.consumerPump = WORKING; disableSensorsForTime(); CONSUM_PUMP_SET();} while(0)
-#define CONSUMP_OFF()           do {wa.consumerPump = STOPPED; disableSensorsForTime(); CONSUM_PUMP_CLR();} while(0)
+#define CONSUMP_ON()            do {wa.consumerPump = WORKING; disableSensorsForTime(); } while(0)
+#define CONSUMP_OFF()           do {wa.consumerPump = STOPPED; disableSensorsForTime(); } while(0)
 #define MAINV_ON()              do {wa.mainValve = OPENED; disableSensorsForTime(); MAIN_VALVE_SET();} while(0)             
 #define MAINV_OFF()             do {wa.mainValve = CLOSED; disableSensorsForTime(); MAIN_VALVE_CLR();} while(0)             
 #define WASH_FILV_ON()          do {wa.washFilValve = OPENED; disableSensorsForTime(); WASH_FILV_SET();} while(0)             
@@ -81,8 +81,8 @@
 #define READ_MONEY_TUMPER()     HAL_GPIO_ReadPin(NINT_IN16_GPIO_Port, NINT_IN16_Pin)            // 6, R2, PD5
 #define READ_MAG_PRESURE()      HAL_GPIO_ReadPin(NINT_IN17_GPIO_Port, NINT_IN17_Pin)            // 5, R3, PD4
 #define READ_FREE_INPUT()       HAL_GPIO_ReadPin(NINT_IN18_GPIO_Port, NINT_IN18_Pin)            // 4, R4, PD3
-#define READ_10L_OUT()          HAL_GPIO_ReadPin(NINT_IN19_GPIO_Port, NINT_IN19_Pin)            // 3, R5, PD2
-#define READ_10L_IN()           HAL_GPIO_ReadPin(NINT_IN20_GPIO_Port, NINT_IN20_Pin)            // 2, R6, PD1
+#define READ_10L_OUT()          HAL_GPIO_ReadPin(NINT_IN20_GPIO_Port, NINT_IN20_Pin)            // 3, R5, PD2
+#define READ_10L_IN()           HAL_GPIO_ReadPin(NINT_IN19_GPIO_Port, NINT_IN19_Pin)            // 2, R6, PD1
 
 void checkTumperDoor();
 void checkMagistralPressure();
@@ -105,10 +105,11 @@ bool isAdminRightButtonPressed();
 
 // assumption of container's water volume
 void setupDefaultLitersVolume(uint16_t volume);
+void setContainerValToZero(uint16_t maxContVolLit);
 
 
-#define TIME_TO_DISABLE_SENSORS         100
-#define TIME_TO_DISABLE_BUTTONS         100         
+#define TIME_TO_DISABLE_SENSORS         50
+#define TIME_TO_DISABLE_BUTTONS         50         
 void disableSensorsForTime(void);
 void disableButtonsForTime(void);
 

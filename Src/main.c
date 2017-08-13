@@ -74,7 +74,8 @@ filtersStr filters;                             // показания счетчиков (приходят
 moneyStats money;                               // оплачено за все время, оплачено сейчас, осталось отработать
 counters cnt = {0};
 
-uint32_t valFor10LitCalibr = 4000;              // количество импульсов расходомера на 10Л. используется для расчетов выдачи воды
+uint32_t valFor10LitInCalibr = 4296;            // количество импульсов расходомера на 10Л. используется для расчетов объема поступившей воды, перелива и воду вне тары
+uint32_t valFor10LitOutCalibr = 3904;           // количество импульсов расходомера на 10Л. используется для расчетов объема выдачи воды
 float waterPrice = 400.0;                       // цена литра, в копейках
 uint8_t outPumpNoWaterStopTime = 10;            // секунд до остановки выходного насоса, если нет воды
 uint8_t startContVolume = 15;                   // минимальный объем воды в контейнере
@@ -103,7 +104,7 @@ static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN 0 */
 
 void containerMgmnt() {
-  wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000;
+  wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 10;
   if (cnt.milLitWentOut + (maxContainerVolume-5)*1000 > cnt.milLitContIn) wa.container = NOT_FULL;
   checkMagistralPressure();
   if (wa.magistralPressure == HI_PRESSURE && wa.container != FULL) {
@@ -116,7 +117,6 @@ void containerMgmnt() {
       }
     }
   }
-  
   if (wa.magistralPressure == NO_PRESSURE || wa.container == FULL) {
     if (wa.mainPump != STOPPED) {
       MAINP_OFF();
@@ -132,20 +132,6 @@ void buttonMgmnt(){
   if (wa.machineState == WAIT)        {
     TURN_BUT_LED_ON();
   }  
-  if (wa.machineState == JUST_PAID)   {
-    if (time.msec %250 > 125) TURN_BUT_LED_ON();
-    else TURN_BUT_LED_OFF();
-  }
-  if (wa.machineState == WORK) {
-    if (wa.consumerPump == STOPPED) {
-      if (time.msec %500 > 250) TURN_BUT_LED_ON();
-      else TURN_BUT_LED_OFF();
-    }
-    else {
-      if (time.sec % 2) TURN_BUT_LED_ON();
-      else TURN_BUT_LED_OFF();
-    }
-  }
   if (wa.machineState == NO_TARE)     {
     if (time.msec %250 > 125) TURN_BUT_LED_ON();
     else TURN_BUT_LED_OFF();
@@ -154,10 +140,13 @@ void buttonMgmnt(){
   if (wa.machineState == WASH_FILTER) TURN_BUT_LED_OFF();
   if (wa.machineState == SERVICE)     TURN_BUT_LED_OFF();
   if (wa.machineState == FREE)        TURN_BUT_LED_OFF();
+  
+  // if (wa.machineState == JUST_PAID) реализовано в обработчике прерывания 1мс
+  // if (wa.machineState == WORK) реализовано в обработчике прерывания 1мс
 }
 
 void outPumpMgmnt() {
-  static timeStr zeroDetTime = {0}, timeCheck = {0};
+  static timeStr timeCheck = {0};
   static uint32_t lastMillilit = 0;
   if (!(wa.machineState == NO_TARE || wa.machineState == WORK)) return;
 
@@ -173,10 +162,13 @@ void outPumpMgmnt() {
     writeTime(&timeCheck);
     if (cnt.milLitWentOut > lastMillilit + 10) noWaterOut = 0;
     else if (noWaterOut < 255) noWaterOut++;
+    lastMillilit = cnt.milLitWentOut;
   }
   
-  if (noWaterOut > 3) {
+  if (noWaterOut > TIME_TO_STOP_CONSUM_PUMP_IF_NO_WATER) {
     if (wa.consumerPump == WORKING) CONSUMP_OFF();
+    noWaterOut = 0;
+    setContainerValToZero(maxContainerVolume);
   }
 }
 
@@ -206,6 +198,7 @@ void lcdMgmnt() {
 void prepareToTransition (){
   disableButtonsForTime();
   disableSensorsForTime();  
+  TM_HD44780_Clear();
   
   if (wa.machineState == NOT_READY) INHIBIT_DIS();
   else INHIBIT_EN();
@@ -281,7 +274,7 @@ int main(void)
   initCheckLoop();
   checkLoop();
 #endif
-  setupDefaultLitersVolume(55);
+  setupDefaultLitersVolume(50);
   while (1)
   {
 ////// MANAGE STUFF    
@@ -303,6 +296,8 @@ int main(void)
       }
       money.leftFromPaid = money.sessionPaid - (((double)cnt.milLitWentOut - (double)lastMilLitWentOut) / 1000.0) * waterPrice;      
       if (money.leftFromPaid <= 0) {
+        uint32_t temp = cnt.milLitWentOut;
+        while(cnt.milLitWentOut < temp + 20);
         wa.machineState = WAIT;
         prepareToTransition();
         money.totalPaid += money.sessionPaid - (uint32_t)money.leftFromPaid;
@@ -316,11 +311,11 @@ int main(void)
       wa.machineState = JUST_PAID;
       prepareToTransition();
     }
-    if (wa.currentContainerVolume < containerMinVolume && wa.machineState == WAIT) {
+    if (wa.currentContainerVolume < containerMinVolume * 100 && wa.machineState == WAIT) {
       wa.machineState = NOT_READY;
       prepareToTransition();
     }
-    if (wa.currentContainerVolume >= containerMinVolume && wa.machineState == NOT_READY) {
+    if (wa.currentContainerVolume >= containerMinVolume * 100 && wa.machineState == NOT_READY) {
       wa.machineState = WAIT;
       prepareToTransition();
     }    

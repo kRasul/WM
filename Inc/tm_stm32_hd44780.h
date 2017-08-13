@@ -216,7 +216,7 @@ void TM_HD44780_CreateChar(uint8_t location, uint8_t* data);
 
 void reInit();
 
-void printWait(uint16_t liters);
+void printWait(uint32_t);
 
 void printPaid(uint16_t , uint16_t); 
 
@@ -228,7 +228,7 @@ void printService(uint8_t);
 
 void printMeasure(uint16_t liters);
 
-void printNotReady(uint16_t liters);
+void printNotReady(uint32_t);
 
 void printLoseDetected();
 

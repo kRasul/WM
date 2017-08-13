@@ -1,18 +1,31 @@
 #include "stm32f1xx_hal.h"
-#include "stdbool.h"
+#include <stdbool.h>
 #include "main.h"
 #include "portsMgmnt.h"
 #include "timeMgmnt.h"
 #include "intrinsics.h"
+#include <stdlib.h>
 
-extern machineParameters wa;                           // состояние автомата
+#define FIR_TO_CALIB_SIZE  4
+
+extern machineParameters wa;                            // состояние автомата
 extern counters cnt;
-extern uint32_t valFor10LitCalibr;
+
+// внешние настройки
+extern uint32_t valFor10LitInCalibr, valFor10LitOutCalibr;
+extern uint8_t maxContainerVolume;                      // объем контейнера с водой
 
 volatile bool userButton = false,       servUpButton = false,           servDownButton = false,
               servLeftButton = false,   servRightButton = false;
 
 timeStr buttonsDisabledTime = {0}, sensorsDisabledTime = {0};
+
+static struct waterCounters{
+  uint32_t containerIn;
+  uint32_t containerOut;
+  uint32_t containerLose;
+  uint32_t containerPause;
+} waterCounters;
 
 void clrUserButton() {
   userButton = false;
@@ -74,26 +87,30 @@ void checkFreeMode(){
   else wa.free = FREE_MODE;
 }
 
-static uint32_t containerCounter = 0;
 // Простой расходомер на входе в контейнер
 void countContainerHandler(){
-  containerCounter++;
-  cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
+  waterCounters.containerIn++;
+  cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
 }
 
 void setupDefaultLitersVolume(uint16_t volume) {
-  containerCounter = valFor10LitCalibr/10 * volume;
-  cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
+  waterCounters.containerIn = valFor10LitInCalibr/10 * volume;
+  cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
 }
 
+void setContainerValToZero(uint16_t maxContVolLit) {
+  uint32_t substr = valFor10LitInCalibr/10 * maxContVolLit;
+  if (waterCounters.containerIn > substr) waterCounters.containerIn -= substr;
+  else waterCounters.containerIn = 0;
+  cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
+}
 
 // Простой расходомер, датчик отсутствия тары
 void pauseOutHandler(){
   static timeStr lastTime = {0};
   static uint8_t fastPulseLoseOut = 0;
-  static uint32_t outLoseCounter = 0; 
   
-  outLoseCounter++;
+  waterCounters.containerPause++;
   
   if (getTimeDiff(lastTime) < 500) fastPulseLoseOut++;
   else fastPulseLoseOut = 0;
@@ -105,41 +122,31 @@ void pauseOutHandler(){
 }
 
 // Простой расходомер, датчик перелива из емкости
-extern uint8_t maxContainerVolume;                // объем контейнера с водой
 void countLoseHandler() {
   static timeStr lastTime = {0};
   static uint8_t fastPulseLose = 0;
-  static uint32_t loseCounter = 0;
   
-  loseCounter++; 
-  cnt.milLitloseCounter = (uint32_t)((double)loseCounter * (10000.0)/(double)valFor10LitCalibr); 
+  waterCounters.containerLose++;
+  cnt.milLitloseCounter = (uint32_t)((double)waterCounters.containerLose * (10000.0)/(double)valFor10LitInCalibr); 
 
   if (getTimeDiff(lastTime) < 500) fastPulseLose++;
   else fastPulseLose = 0;
   writeTime(&lastTime);
   
+  
   if (fastPulseLose > FAST_PULSES_NUM_TRESHOLD) {
     wa.container = FULL;                                                        // we know container is full
-/*    wa.currentContainerVolume = maxContainerVolume;    
-    containerCounter = valFor10LitCalibr/10 * volume;
-    while (cnt.milLitContIn < cnt.milLitWentOut + wa.container * 1000) {        // then milLitContIn have to be bigger then milLitWentOut on container volume
-      containerCounter++; 
-      cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
-    }
-*/    
-    containerCounter += valFor10LitCalibr/10 * 
+    waterCounters.containerIn += valFor10LitInCalibr/10 * 
       (maxContainerVolume - ((cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000));
-    cnt.milLitContIn = (uint32_t)((double)containerCounter * (10000.0)/(double)valFor10LitCalibr); 
+    cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
     wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000;
   }
 }
 
 // Простой расходомер на потребителя 
-static uint32_t outCounter = 0; 
 void countOutHandler(){
-  
-  outCounter++;
-  cnt.milLitWentOut = (uint32_t)((double)outCounter * (10000.0)/(double)valFor10LitCalibr); 
+  waterCounters.containerOut++;
+  cnt.milLitWentOut = (uint32_t)((double)waterCounters.containerOut * (10000.0)/(double)valFor10LitOutCalibr); 
 }
 
 
@@ -157,22 +164,42 @@ void checkOut10Counter(){
   
   static uint32_t out101 = 0, out102 = 0;
   
-  static int8_t lastInState = -100;
-  if ((lastInState == -100 || swchr == 1) && !(inDataOUT[0]+inDataOUT[1]+inDataOUT[2]+inDataOUT[3]+inDataOUT[4]+inDataOUT[5]+inDataOUT[6]+inDataOUT[7]+inDataOUT[8]+inDataOUT[9])) {
+  static bool firstExecute = true, newValForCalib = false;
+  if ((firstExecute == true || swchr == 1) && !(inDataOUT[0]+inDataOUT[1]+inDataOUT[2]+inDataOUT[3]+inDataOUT[4]+inDataOUT[5]+inDataOUT[6]+inDataOUT[7]+inDataOUT[8]+inDataOUT[9])) {
     swchr = 0;
-    if (lastInState == -101) {
+    if (firstExecute == false) {
       cnt.out10Counter++;
-      out101 = outCounter;
+      out101 = waterCounters.containerOut;
+      newValForCalib = true;
     }
-    if (lastInState == -100) lastInState = -101;
+    firstExecute = false;
   }
-  if ((lastInState == -100 || swchr == 0) && (inDataOUT[0]+inDataOUT[1]+inDataOUT[2]+inDataOUT[3]+inDataOUT[4]+inDataOUT[5]+inDataOUT[6]+inDataOUT[7]+inDataOUT[8]+inDataOUT[9]) == 10) {
+  if ((firstExecute == true || swchr == 0) && (inDataOUT[0]+inDataOUT[1]+inDataOUT[2]+inDataOUT[3]+inDataOUT[4]+inDataOUT[5]+inDataOUT[6]+inDataOUT[7]+inDataOUT[8]+inDataOUT[9]) == 10) {
     swchr = 1;
-    if (lastInState == -110) {
+    if (firstExecute == false) {
       cnt.out10Counter++;
-      out102 = outCounter;
+      out102 = waterCounters.containerOut;
+      newValForCalib = true;
     }
-    if (lastInState == -100) lastInState = -110;
+    firstExecute = false;
+  }
+
+  static uint32_t firOut[FIR_TO_CALIB_SIZE] = {0};
+  static uint8_t i = 0;  
+  if (newValForCalib == true) {
+    newValForCalib = false;
+    if (out101 != 0 && out102 != 0) {
+      firOut[i++] = (out101>out102) ? out101 - out102: out102 - out101;
+      if (i >= FIR_TO_CALIB_SIZE) {
+        i = 0;
+        if (abs(firOut[0] - firOut[2]) < 100 && abs(firOut[1] - firOut[3]) < 100) {
+          uint32_t temp = 0;
+          for (uint8_t j = 0; j < FIR_TO_CALIB_SIZE; j++) temp += firOut[j];
+          temp /= (FIR_TO_CALIB_SIZE / 2);
+//          valFor10LitOutCalibr = temp;
+        }        
+      }
+    }
   }
 }
 
@@ -190,32 +217,52 @@ void checkInput10Counter(){
   
   static uint32_t in101 = 0, in102 = 0;
   
-  static int8_t lastInState = -100;
-  if ((lastInState == -100 || swchr == 1) && !(inDataIN[0]+inDataIN[1]+inDataIN[2]+inDataIN[3]+inDataIN[4]+inDataIN[5]+inDataIN[6]+inDataIN[7]+inDataIN[8]+inDataIN[9])) {
+  static bool firstExecute = true;
+  static bool newValForCalib = false;
+  if ((firstExecute == true || swchr == 1) && !(inDataIN[0]+inDataIN[1]+inDataIN[2]+inDataIN[3]+inDataIN[4]+inDataIN[5]+inDataIN[6]+inDataIN[7]+inDataIN[8]+inDataIN[9])) {
     swchr = 0;
-    if (lastInState == -101) {
+    if (firstExecute == false) {
       cnt.input10Counter++;
-      in101 = containerCounter;
+      in101 = waterCounters.containerIn;
+      newValForCalib = true;
     }
-    if (lastInState == -100) lastInState = -101;
+    firstExecute = false;
   }
-  if ((lastInState == -100 || swchr == 0) && (inDataIN[0]+inDataIN[1]+inDataIN[2]+inDataIN[3]+inDataIN[4]+inDataIN[5]+inDataIN[6]+inDataIN[7]+inDataIN[8]+inDataIN[9]) == 10) {
+  if ((firstExecute == true || swchr == 0) && (inDataIN[0]+inDataIN[1]+inDataIN[2]+inDataIN[3]+inDataIN[4]+inDataIN[5]+inDataIN[6]+inDataIN[7]+inDataIN[8]+inDataIN[9]) == 10) {
     swchr = 1;
-    if (lastInState == -110) {
+    if (firstExecute == false) {
       cnt.input10Counter++;
-      in102 = containerCounter;
+      in102 = waterCounters.containerIn;
+      newValForCalib = true;
     }
-    if (lastInState == -100) lastInState = -110;
+    firstExecute = false;
+  }
+
+  static int32_t firInput[FIR_TO_CALIB_SIZE] = {0};
+  static uint8_t i = 0;  
+  if (newValForCalib == true) {
+    newValForCalib = false;
+    if (in101 != 0 && in102 != 0) {
+      firInput[i++] = (in101>in102) ? in101 - in102: in102 - in101;
+      if (i >= FIR_TO_CALIB_SIZE) {
+        i = 0;
+        if (abs(firInput[0] - firInput[2]) < 100 && abs(firInput[1] - firInput[3]) < 100) {
+          uint32_t temp = 0;
+          for (uint8_t j = 0; j < FIR_TO_CALIB_SIZE; j++) temp += firInput[j];
+          temp /= (FIR_TO_CALIB_SIZE / 2);
+//          valFor10LitInCalibr = temp;
+        }
+      }
+    }
   }
 }
 
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
   static uint16_t lastPinNum = 0;
-  static timeStr timePulseDetected = {0};
-  
   static uint16_t c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11;
   
+  //static timeStr timePulseDetected = {0};
   //if (GPIO_Pin == lastPinNum && getTimeDiff(timePulseDetected) < 2) return;  
     
   if (getTimeDiff(sensorsDisabledTime) > TIME_TO_DISABLE_SENSORS) {

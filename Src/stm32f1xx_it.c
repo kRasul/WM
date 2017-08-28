@@ -48,6 +48,7 @@ extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
 extern machineParameters wa;                           // состояние автомата
 extern counters cnt;
+extern uint8_t uartDataRx[RPI_BUFFER_SIZE];
 
 /******************************************************************************/
 /*            Cortex-M3 Processor Interruption and Exception Handlers         */ 
@@ -355,6 +356,7 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
+  if (huart1.RxXferCount == 0) HAL_UART_Receive_IT(&huart1, &uartDataRx[0], 256);
 
   /* USER CODE END USART1_IRQn 1 */
 }

@@ -9,7 +9,7 @@
 bool checkNewData(void);
 void parseUART(void);
 
-extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart1;
 extern machineParameters wa;
 extern filtersStr filters;
 extern moneyStats money;
@@ -211,7 +211,7 @@ void getMoney(char const * uartRXBuf) {
 }
 
 bool checkNewData() {
-  uint8_t curPos = huart2.RxXferSize - huart2.RxXferCount - 1;  
+  uint8_t curPos = huart1.RxXferSize - huart1.RxXferCount - 1;  
   if (uartDataRx[curPos] == '\n' && endPointer != (curPos)) {
     endPointer = curPos;
     return true;
@@ -220,10 +220,10 @@ bool checkNewData() {
 }
 
 void initUART(void) {
-  huart2.pRxBuffPtr = &uartDataRx[0];
-  huart2.pTxBuffPtr = &uartDataTx[0];
+  huart1.pRxBuffPtr = &uartDataRx[0];
+  huart1.pTxBuffPtr = &uartDataTx[0];
   
-  HAL_UART_Receive_IT(&huart2, &uartDataRx[0], RPI_BUFFER_SIZE);
+  HAL_UART_Receive_IT(&huart1, &uartDataRx[0], RPI_BUFFER_SIZE);
 }
 
 
@@ -314,6 +314,10 @@ uint16_t parseUartData(uint8_t * uartTXBuf) {
 }
   
 void parseUART() {
-  HAL_UART_Transmit_IT(&huart2, &uartDataTx[0], parseUartData(&uartDataTx[0]));
+  HAL_UART_Transmit_IT(&huart1, &uartDataTx[0], parseUartData(&uartDataTx[0]));
   clrLastMessage();
+}
+
+void txSmthngUART() {
+  HAL_UART_Transmit(&huart1, "Hello!                                               ", 50, 50000);
 }

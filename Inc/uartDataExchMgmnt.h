@@ -3,10 +3,10 @@
 
 #include <stdbool.h>
 
-#define RPI_BUFFER_SIZE         256
-
 void uartDataExchMgmnt(void);
 
 void initUART(void);
+
+void txSmthngUART();
 
 #endif

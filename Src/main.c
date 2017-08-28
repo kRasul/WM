@@ -283,7 +283,10 @@ int main(void)
     lcdMgmnt();
     outPumpMgmnt();
     buttonMgmnt();
-    
+    HAL_UART_Transmit(&huart1, "Hello!", 6, 50000);
+    HAL_UART_Transmit(&huart2, "Hello!", 6, 50000);
+    HAL_UART_Transmit(&huart3, "Hello!", 6, 50000);
+
     if (wa.machineState == WAIT) {
     }
     if (wa.machineState == NOT_READY) {

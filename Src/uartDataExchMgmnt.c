@@ -206,8 +206,8 @@ void setFilterValues(char const * uartRXBuf) {
 }
 
 void getMoney(char const * uartRXBuf) {
-  money.sessionPaid += (float)strtol(uartRXBuf, NULL, 10) / 100.0;
-  money.leftFromPaid += strtol(uartRXBuf, NULL, 10) / 100.0;
+  money.sessionPaid += (float)strtol(uartRXBuf, NULL, 10);
+  money.leftFromPaid += strtol(uartRXBuf, NULL, 10);
 }
 
 bool checkNewData() {

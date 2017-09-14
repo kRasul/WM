@@ -155,7 +155,7 @@ void checkOut10Counter(){
   static uint8_t inDataOUT[10];
   static uint8_t p = 0, swchr = 0;
   
-  static uint8_t temp = 0;
+  static uint8_t temp = 0;              // to act once every 5ms
   if (temp++ < 5) return;
   temp = 0;
   
@@ -257,6 +257,27 @@ void checkInput10Counter(){
   }
 }
 
+lghts wmLghts = {0};
+
+void setRed(uint8_t r) {
+  if (r > 10) r = 10;
+  wmLghts.r = r;
+}
+
+void setBlue(uint8_t b) {
+  if (b > 10) b = 10;
+  wmLghts.b = b;
+}
+
+void setGreen(uint8_t g) {
+  if (g > 10) g = 10;
+  wmLghts.g = g;
+}
+
+void setGlobal(uint8_t l) {
+  if (l > 10) l = 10;
+  wmLghts.global = l;
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
   static uint16_t lastPinNum = 0;
@@ -308,6 +329,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
     if (GPIO_Pin == 2) {                        // R11
       static timeStr lastTimeButton = {0};
       if (getTimeDiff(lastTimeButton) > 500) {
+        delayMilliseconds(5);
+        if (!HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_1))return;        // debounce
         writeTime(&lastTimeButton);
         userButton = true; 
         static uint8_t usrBtCnt = 0;

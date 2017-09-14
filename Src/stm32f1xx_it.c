@@ -49,7 +49,7 @@ extern UART_HandleTypeDef huart1;
 extern machineParameters wa;                           // состояние автомата
 extern counters cnt;
 extern uint8_t uartDataRx[RPI_BUFFER_SIZE];
-
+extern lghts wmLghts; 
 /******************************************************************************/
 /*            Cortex-M3 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/
@@ -309,14 +309,17 @@ void TIM3_IRQHandler(void)
   }
   if (wa.consumerPump == STOPPED) CONSUM_PUMP_CLR(); 
   else {
-    if (millisCounter >= 8000) CONSUM_PUMP_SET();
+    if (millisCounter >= 2000) CONSUM_PUMP_SET();
     else {
-      bool set = false;
+      bool set = true;
       millisCounter++;
-      if (millisCounter % 250 < 50) set = true;
+//      if (millisCounter % 250 < 150) set = true;                                // let to go for second sine
+//      if (millisCounter % 250 < 200 && millisCounter > 1000) set = true;        // let to go for fourth sine*/
+/*      if (millisCounter % 250 < 50) set = true;
       if (millisCounter % 250 < 100 && millisCounter > 2000) set = true;
       if (millisCounter % 250 < 150 && millisCounter > 4000) set = true;
-      if (millisCounter % 250 < 200 && millisCounter > 6000) set = true;
+      if (millisCounter % 250 < 200 && millisCounter > 6000) set = true;*/
+
       if (set) CONSUM_PUMP_SET(); 
       else CONSUM_PUMP_CLR();
     }
@@ -342,6 +345,16 @@ void TIM3_IRQHandler(void)
       else TURN_BUT_LED_OFF();
     }
   }
+  
+  // manage PWM for lght
+  if (time.msec % 10 >= 10 - wmLghts.r) R_ON();
+  else R_OFF();
+  if (time.msec % 10 >= 10 - wmLghts.g) G_ON();
+  else G_OFF();
+  if (time.msec % 10 >= 10 - wmLghts.b) B_ON();
+  else B_OFF();
+  if (time.msec % 10 >= 10 - wmLghts.global) GLOBAL_LGHT_ON();
+  else GLOBAL_LGHT_OFF();
   
   /* USER CODE END TIM3_IRQn 1 */
 }

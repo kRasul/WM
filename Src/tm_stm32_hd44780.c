@@ -382,7 +382,7 @@ void printLoseDetected() {
 void printNotReady(uint32_t lits){
 //  createRusChars();
   TM_HD44780_Puts(0, 0, "HE ");
-  char lit0[2] = {_G, '\0'};
+  char lit0[3] = {_G, '\0'};
   TM_HD44780_Puts(3,0, &lit0[0]);
   TM_HD44780_Puts(4,0, "OTOB, ");
   

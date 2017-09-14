@@ -39,6 +39,8 @@
 #define OUT13CLR()              HAL_GPIO_WritePin(OUT13_GPIO_Port, OUT13_Pin, GPIO_PIN_RESET)
 #define OUT14SET()              HAL_GPIO_WritePin(OUT14_GPIO_Port, OUT14_Pin, GPIO_PIN_SET)
 #define OUT14CLR()              HAL_GPIO_WritePin(OUT14_GPIO_Port, OUT14_Pin, GPIO_PIN_RESET)
+#define MOSFET2_ON()            HAL_GPIO_WritePin(MOSFET2_GPIO_Port, MOSFET2_Pin, GPIO_PIN_SET)
+#define MOSFET2_OFF()           HAL_GPIO_WritePin(MOSFET2_GPIO_Port, MOSFET2_Pin, GPIO_PIN_RESET)
 
 #define TURN_BUT_LED_ON()       OUT7SET()
 #define TURN_BUT_LED_OFF()      OUT7CLR()
@@ -84,6 +86,19 @@
 #define READ_10L_OUT()          HAL_GPIO_ReadPin(NINT_IN20_GPIO_Port, NINT_IN20_Pin)            // 3, R5, PD2
 #define READ_10L_IN()           HAL_GPIO_ReadPin(NINT_IN19_GPIO_Port, NINT_IN19_Pin)            // 2, R6, PD1
 
+#define R_ON()                  OUT9SET()
+#define R_OFF()                 OUT9CLR()
+#define G_ON()                  OUT8SET()
+#define G_OFF()                 OUT8CLR()
+#define B_ON()                  OUT10SET()
+#define B_OFF()                 OUT10CLR()
+
+#define COOLER_ON()             OUT4SET()
+#define COOLER_OFF()            OUT4CLR()
+
+#define GLOBAL_LGHT_ON()        MOSFET2_ON()
+#define GLOBAL_LGHT_OFF()       MOSFET2_OFF()
+
 void checkTumperDoor();
 void checkMagistralPressure();
 void checkTumperMoney();
@@ -102,6 +117,11 @@ bool isAdminUpButtonPressed();
 bool isAdminDownButtonPressed();
 bool isAdminLeftButtonPressed();
 bool isAdminRightButtonPressed();
+
+void setRed(uint8_t);
+void setBlue(uint8_t);
+void setGreen(uint8_t);
+void setGlobal(uint8_t);
 
 // assumption of container's water volume
 void setupDefaultLitersVolume(uint16_t volume);

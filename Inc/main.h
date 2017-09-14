@@ -212,8 +212,8 @@
 //#define valFor10LitCalibr               5500 
 #define LOW_TH_VOL_SENS                 4000
 #define HIGH_TH_VOL_SENS                7000
-#define FAST_PULSES_NUM_TRESHOLD        3
-#define TIME_TO_STOP_CONSUM_PUMP_IF_NO_WATER    10*2
+#define FAST_PULSES_NUM_TRESHOLD        25
+//#define TIME_TO_STOP_CONSUM_PUMP_IF_NO_WATER    10*2
     
 #define RPI_BUFFER_SIZE         256
 
@@ -328,6 +328,13 @@ typedef struct {
   filter backOsm2;                              // обратный осмос 2
   filter backOsm3;                              // обратный осмос 3
 } filtersStr;
+
+typedef struct {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+  uint8_t global;
+} lghts;
 
 extern void delayMicroseconds(uint32_t );       // assembler delay.s
 extern void delayMilliseconds(uint32_t );       // assembler delay.s

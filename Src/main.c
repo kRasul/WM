@@ -75,9 +75,9 @@ moneyStats money;                               // оплачено за все время, оплаче
 counters cnt = {0};
 
 uint32_t valFor10LitInCalibr = 4296;            // количество импульсов расходомера на 10Л. используется для расчетов объема поступившей воды, перелива и воду вне тары
-uint32_t valFor10LitOutCalibr = 3904;           // количество импульсов расходомера на 10Л. используется для расчетов объема выдачи воды
+uint32_t valFor10LitOutCalibr = 5600;           // количество импульсов расходомера на 10Л. используется для расчетов объема выдачи воды
 float waterPrice = 400.0;                       // цена литра, в копейках
-uint8_t outPumpNoWaterStopTime = 10;            // секунд до остановки выходного насоса, если нет воды
+uint8_t outPumpNoWaterStopTime = 30;            // секунд до остановки выходного насоса, если нет воды
 uint8_t startContVolume = 15;                   // минимальный объем воды в контейнере
 uint8_t containerMinVolume = 3;                 // минимальный объем воды в контейнере
 uint8_t maxContainerVolume = 95;                // объем контейнера с водой
@@ -165,7 +165,7 @@ void outPumpMgmnt() {
     lastMillilit = cnt.milLitWentOut;
   }
   
-  if (noWaterOut > TIME_TO_STOP_CONSUM_PUMP_IF_NO_WATER) {
+  if (noWaterOut > outPumpNoWaterStopTime) {
     if (wa.consumerPump == WORKING) CONSUMP_OFF();
     noWaterOut = 0;
     setContainerValToZero(maxContainerVolume);
@@ -194,6 +194,33 @@ void lcdMgmnt() {
     if (wa.machineState == FREE)        TM_HD44780_Clear();
   }
 } 
+
+void lghtsMgmnt() {
+  setGlobal(10);
+  timeStr time = getCurTime();
+  if (wa.machineState != WORK) {
+    setBlue(10);
+    setRed(0);
+    if (time.sec % 2) {
+      setGreen(10 - time.msec / 100);
+    }
+    else {
+      setGreen(time.msec / 100);
+    }
+  }
+  else {
+    if (time.sec % 2) {      
+      setGreen(time.msec / 100);
+      setBlue(time.msec / 100);
+      setRed(time.msec / 100);
+    }
+    else {
+      setGreen(10 - time.msec / 100);
+      setBlue(10 - time.msec / 100);
+      setRed(10 - time.msec / 100);
+    }
+  }
+}
 
 void prepareToTransition (){
   disableButtonsForTime();
@@ -275,6 +302,7 @@ int main(void)
   checkLoop();
 #endif
   setupDefaultLitersVolume(50);
+  COOLER_ON();
   while (1)
   {
 ////// MANAGE STUFF    
@@ -283,10 +311,8 @@ int main(void)
     lcdMgmnt();
     outPumpMgmnt();
     buttonMgmnt();
-    HAL_UART_Transmit(&huart1, "Hello!", 6, 50000);
-    HAL_UART_Transmit(&huart2, "Hello!", 6, 50000);
-    HAL_UART_Transmit(&huart3, "Hello!", 6, 50000);
-
+    lghtsMgmnt();
+    
     if (wa.machineState == WAIT) {
     }
     if (wa.machineState == NOT_READY) {
@@ -555,7 +581,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -574,7 +600,7 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -593,7 +619,7 @@ static void MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
+  huart3.Init.BaudRate = 9600;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;

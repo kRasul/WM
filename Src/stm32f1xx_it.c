@@ -369,8 +369,10 @@ void USART1_IRQHandler(void)
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
-  if (huart1.RxXferCount == 0) HAL_UART_Receive_IT(&huart1, &uartDataRx[0], 256);
-
+  if (huart1.RxXferCount == 0) {
+    HAL_UART_AbortReceive(&huart1);
+    HAL_UART_Receive_IT(&huart1, &uartDataRx[0], 256);
+  }
   /* USER CODE END USART1_IRQn 1 */
 }
 

@@ -41,7 +41,9 @@ inline void getLastMessage () {
 
 inline void clrLastMessage () {
   memset(&mesRx[0], 0, RPI_BUFFER_SIZE);
-  entryPointer = endPointer;
+  //entryPointer = endPointer;
+  entryPointer = 255;
+  endPointer = 0;
 }
 
 uint8_t getMessageLnhgt () {
@@ -230,6 +232,8 @@ void initUART(void) {
 uint16_t parseUartData(uint8_t * uartTXBuf) {
   uint8_t txByteCounter = 0;
   getLastMessage();
+  HAL_UART_AbortReceive(&huart1);
+  HAL_UART_Receive_IT(&huart1, &uartDataRx[0], 256);
   if (mesRx[0] == 'g') {
     if (getMessageLnhgt() > 2) txByteCounter += writeError(3);
     if (getMessageLnhgt() < 2) txByteCounter += writeError(2);

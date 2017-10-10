@@ -11,6 +11,8 @@ ByteLimit=50
 [StLinkDriver]
 CStepIntDis=_ 0
 LeaveTargetRunning=_ 0
+stlinkserialNo=87175925
+stlinkfoundProbes=
 [JLinkDriver]
 CStepIntDis=_ 0
 LeaveTargetRunning=_ 0
@@ -18,7 +20,7 @@ TraceBufferSize=0x00010000
 TraceStallIfFIFOFull=0x00000000
 TracePortSize=0x00000004
 [DebugChecksum]
-Checksum=303985416
+Checksum=-1888010965
 [Exceptions]
 StopOnUncaught=_ 0
 StopOnThrow=_ 0
@@ -31,10 +33,10 @@ MixedMode=1
 [SWOTraceHWSettings]
 OverrideDefaultClocks=0
 CpuClock=48000000
-ClockAutoDetect=1
-ClockWanted=30000000
-JtagSpeed=24406779
-Prescaler=2
+ClockAutoDetect=0
+ClockWanted=2000000
+JtagSpeed=2000000
+Prescaler=24
 TimeStampPrescIndex=0
 TimeStampPrescData=0
 PcSampCYCTAP=1
@@ -57,6 +59,28 @@ Fmt1={W}42:usrBtCnt	3	0
 [Trace1]
 Enabled=0
 ShowSource=1
+[PowerLog]
+Title_0=I0
+Symbol_0=0 4 0
+LogEnabled=0
+GraphEnabled=0
+ShowTimeLog=1
+LiveEnabled=0
+LiveFile=PowerLogLive.log
+[DriverProfiling]
+Enabled=0
+Mode=1
+Graph=0
+Symbiont=0
+Exclusions=
+[CallStackLog]
+Enabled=0
+[CallStackStripe]
+ShowTiming=1
+[PowerProbe]
+Frequency=10000
+Probe0=I0
+ProbeSetup0=2 1 1 2 0 0
 [Trace2]
 Enabled=0
 ShowSource=0
@@ -69,14 +93,6 @@ EventEXC=0
 EventFOLD=0
 EventLSU=0
 EventSLEEP=0
-[PowerLog]
-Title_0=I0
-Symbol_0=0 4 0
-LogEnabled=0
-GraphEnabled=0
-ShowTimeLog=1
-LiveEnabled=0
-LiveFile=PowerLogLive.log
 [DataLog]
 LogEnabled=0
 GraphEnabled=0
@@ -105,16 +121,6 @@ ShowTimeLog=1
 SumEnabled=0
 ShowTimeSum=1
 SumSortOrder=0
-[Disassemble mode]
-mode=0
-[Breakpoints2]
-Bp0=_ 0 "EMUL_TRACE_START" "userButton" 0 0 0 0 4294967295 1802591811 0 0
-Bp1=_ 0 "EMUL_DATA" "userButton" 0 0 0 0 4294967295
-Bp2=_ 0 "EMUL_DATA" "CONSUMP_OFF" 0 0 0 0 4294967295
-Bp3=_ 0 "EMUL_DATA" "containerMinVolume" 0 0 0 0 4294967295
-Bp4=_ 0 "EMUL_TRACE_START" "wa.currentContainerVolume" 0 0 0 0 4294967295 1802591811 0 0
-Bp5=_ 1 "EMUL_TRACE_START" "wa.currentContainerVolume" 0 0 0 0 4294967295 1802591811 0 0
-Count=6
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""
@@ -122,20 +128,13 @@ Category=_ 0
 [TermIOLog]
 LoggingEnabled=_ 0
 LogFile=_ ""
+[Disassemble mode]
+mode=0
+[Breakpoints2]
+Bp0=_ 0 "EMUL_DATA" "userButton" 0 0 0 0 4294967295
+Bp1=_ 0 "EMUL_DATA" "CONSUMP_OFF" 0 0 0 0 4294967295
+Bp2=_ 0 "EMUL_DATA" "containerMinVolume" 0 0 0 0 4294967295
+Count=3
 [Aliases]
 Count=0
 SuppressDialog=0
-[DriverProfiling]
-Enabled=0
-Mode=1
-Graph=0
-Symbiont=0
-Exclusions=
-[CallStackLog]
-Enabled=0
-[CallStackStripe]
-ShowTiming=1
-[PowerProbe]
-Frequency=10000
-Probe0=I0
-ProbeSetup0=2 1 1 2 0 0

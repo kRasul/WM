@@ -302,6 +302,7 @@ int main(void)
   checkLoop();
 #endif
   setupDefaultLitersVolume(50);
+  COOLER_ON();
   while (1)
   {
 ////// MANAGE STUFF    

@@ -172,7 +172,7 @@ uint16_t insertStats (uint8_t * uartTxBuf) {
 }
 
 uint16_t returnMoney (uint8_t * uartTxBuf) {
-  uint16_t byteCounter = sprintf((char*)(uartTxBuf), "%d", (uint32_t) (money.leftFromPaid * 100.0));  
+  uint16_t byteCounter = sprintf((char*)(uartTxBuf), "%d", (uint32_t) money.leftFromPaid);  
   *(uartTxBuf + byteCounter) = '\n'; byteCounter++;      
   return byteCounter;
 }

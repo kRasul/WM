@@ -338,6 +338,8 @@ int main(void)
     if (money.sessionPaid > 0 && wa.machineState == WAIT){
       wa.machineState = JUST_PAID;
       prepareToTransition();
+      disableButtonsForTime();  
+      clrUserButton();      
     }
     if (wa.currentContainerVolume < containerMinVolume * 100 && wa.machineState == WAIT) {
       wa.machineState = NOT_READY;

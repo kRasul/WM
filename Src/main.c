@@ -62,6 +62,8 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
+WWDG_HandleTypeDef hwwdg;
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 timeStr timeConsPumpStarted;                    // время, когда последний раз был запущен насос на клиента
@@ -95,6 +97,7 @@ static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
+static void MX_WWDG_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -222,6 +225,24 @@ void lghtsMgmnt() {
   }
 }
 
+void ADCMgmnt() {
+  HAL_ADCEx_InjectedPollForConversion(&hadc1, 100);
+  uint16_t suppVolCH4 = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1);
+  uint16_t adcCH5 = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
+  uint16_t adcTempMCU = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_3);
+  uint16_t intRef = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_4);
+/*  static uint16_t adc1, adc2, adc3, adc4;
+  adc1 = suppVolCH4;
+  adc2 = adcCH5;
+  adc3 = adcTempMCU;
+  adc4 = intRef;*/
+  wa.suppVoltage = (uint16_t)(1.5/(float)intRef * (float)suppVolCH4 * 3.13 * 1000.0); 
+  wa.tempMCU = (uint16_t)((1.43 - 1.5/(float)intRef * (float)adcTempMCU) / 4.3e-3 + 25.0); 
+  
+  HAL_ADCEx_InjectedStop(&hadc1);
+  HAL_ADCEx_InjectedStart(&hadc1);
+}
+
 void prepareToTransition (){
   disableButtonsForTime();
   disableSensorsForTime();  
@@ -285,6 +306,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
+  MX_WWDG_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
@@ -301,10 +323,14 @@ int main(void)
   initCheckLoop();
   checkLoop();
 #endif
+  COOLER_ON();
+  HAL_ADCEx_InjectedStart(&hadc1);
   setupDefaultLitersVolume(50);
+  
   while (1)
   {
 ////// MANAGE STUFF    
+    ADCMgmnt();
     containerMgmnt();
     uartDataExchMgmnt();
     lcdMgmnt();
@@ -351,9 +377,9 @@ int main(void)
     }    
 ////// BUTTONS PROCESSING        
     if (isUserButtonPressed() && wa.machineState == JUST_PAID) {
-      disableButtonsForTime();  
       wa.machineState = WORK;
       prepareToTransition();
+      disableButtonsForTime();  
       clrUserButton();
     }
     if (isUserButtonPressed() && wa.machineState == WORK) {
@@ -368,6 +394,10 @@ int main(void)
       prepareToTransition();
       clrUserButton();
     } 
+    if (wa.machineState == NO_TARE && getTimeDiff(waterMissDetectedTime) > 4000) {      // return to WORK with pause mode
+      wa.machineState = WORK;
+    }
+    
     if (isUserButtonPressed() && wa.machineState == WAIT) {
       clrUserButton();
     }
@@ -459,11 +489,12 @@ static void MX_ADC1_Init(void)
 {
 
   ADC_ChannelConfTypeDef sConfig;
+  ADC_InjectionConfTypeDef sConfigInjected;
 
     /**Common config 
     */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -480,6 +511,50 @@ static void MX_ADC1_Init(void)
   sConfig.Rank = 1;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Injected Channel 
+    */
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_4;
+  sConfigInjected.InjectedRank = 1;
+  sConfigInjected.InjectedNbrOfConversion = 4;
+  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfigInjected.ExternalTrigInjecConv = ADC_INJECTED_SOFTWARE_START;
+  sConfigInjected.AutoInjectedConv = DISABLE;
+  sConfigInjected.InjectedDiscontinuousConvMode = DISABLE;
+  sConfigInjected.InjectedOffset = 0;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Injected Channel 
+    */
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_5;
+  sConfigInjected.InjectedRank = 2;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Injected Channel 
+    */
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_TEMPSENSOR;
+  sConfigInjected.InjectedRank = 3;
+  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_7CYCLES_5;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Injected Channel 
+    */
+  sConfigInjected.InjectedChannel = ADC_CHANNEL_VREFINT;
+  sConfigInjected.InjectedRank = 4;
+  sConfigInjected.InjectedSamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  if (HAL_ADCEx_InjectedConfigChannel(&hadc1, &sConfigInjected) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -582,7 +657,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -601,7 +676,7 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 9600;
+  huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -620,7 +695,7 @@ static void MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 9600;
+  huart3.Init.BaudRate = 115200;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -628,6 +703,22 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* WWDG init function */
+static void MX_WWDG_Init(void)
+{
+
+  hwwdg.Instance = WWDG;
+  hwwdg.Init.Prescaler = WWDG_PRESCALER_8;
+  hwwdg.Init.Window = 64;
+  hwwdg.Init.Counter = 64;
+  hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
+  if (HAL_WWDG_Init(&hwwdg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }

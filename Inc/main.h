@@ -292,6 +292,7 @@ typedef struct {
   uint32_t litersLeftFromSession;               // осталось литров выдать клиенту в текущей сессии
   uint32_t currentContainerVolume;              // количество воды в контейнере сейчас
   uint16_t suppVoltage;                         // напряжение питания
+  uint16_t tempMCU;                             // температура МК
   billAccept billAccept;                        // запрещено/разрешено принимать деньги
   bool waterMissDetected;                       // true, если обнаружена утечка воды при выдаче
   tempMgmnt warmer;

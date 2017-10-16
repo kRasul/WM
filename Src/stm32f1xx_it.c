@@ -47,9 +47,10 @@
 extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
 extern machineParameters wa;                           // состояние автомата
+extern lghts wmLghts;
 extern counters cnt;
 extern uint8_t uartDataRx[RPI_BUFFER_SIZE];
-extern lghts wmLghts; 
+
 /******************************************************************************/
 /*            Cortex-M3 Processor Interruption and Exception Handlers         */ 
 /******************************************************************************/

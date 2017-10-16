@@ -46,6 +46,7 @@ inline void clrLastMessage () {
   endPointer = 0;
 }
 
+
 uint8_t getMessageLnhgt () {
   if (endPointer >= entryPointer) return endPointer - entryPointer;
   else return (RPI_BUFFER_SIZE - entryPointer) + endPointer;
@@ -84,6 +85,7 @@ uint8_t writeError (uint8_t errCode) {
   return 0;
 }
 
+// create answer for 'g' response
 uint16_t insertStats (uint8_t * uartTxBuf) {
   uint16_t byteCounter = 0;
   *(uartTxBuf + byteCounter) = '[';
@@ -165,6 +167,13 @@ uint16_t insertStats (uint8_t * uartTxBuf) {
   *(uartTxBuf + byteCounter) = ',';  byteCounter++;      
   
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", wa.billAccept);
+  *(uartTxBuf + byteCounter) = ',';  byteCounter++;      
+
+  uint8_t everythingOKbit = 1;
+  byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", everythingOKbit);
+  *(uartTxBuf + byteCounter) = ']';  byteCounter++;      
+
+  byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", wa.tempMCU);
   *(uartTxBuf + byteCounter) = ']';  byteCounter++;      
   
   *(uartTxBuf + byteCounter) = '\n'; byteCounter++;      

@@ -205,6 +205,13 @@
 
 #include "stdbool.h"
 
+//#define STANDART_NO_TARE_COUNTER      
+#ifndef STANDART_NO_TARE_COUNTER      
+#define NON_STANDART_CONTAINER
+#define TIME_TO_NO_TARE                 200     // time to work
+#define NO_SENSE_TIME_AFTER_TRIGGER     3000
+#endif
+    
 //#define DEBUG_PCB_MODE
 #define DEBUG_TIME_BETWEEN              500
 #define TIME_BETWEEN_PORT_CHANGES       100

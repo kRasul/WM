@@ -105,6 +105,7 @@ void checkTumperMoney();
 void checkFreeMode();
 void checkInput10Counter();
 void checkOut10Counter();
+void checkNoTare();
 
 void clrUserButton();
 void clrServUpButton();

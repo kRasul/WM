@@ -54,6 +54,8 @@ CAN_HandleTypeDef hcan;
 
 CRC_HandleTypeDef hcrc;
 
+IWDG_HandleTypeDef hiwdg;
+
 SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim3;
@@ -61,8 +63,6 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
-
-WWDG_HandleTypeDef hwwdg;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -97,7 +97,7 @@ static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
-static void MX_WWDG_Init(void);
+static void MX_IWDG_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -231,11 +231,6 @@ void ADCMgmnt() {
   uint16_t adcCH5 = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_2);
   uint16_t adcTempMCU = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_3);
   uint16_t intRef = HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_4);
-/*  static uint16_t adc1, adc2, adc3, adc4;
-  adc1 = suppVolCH4;
-  adc2 = adcCH5;
-  adc3 = adcTempMCU;
-  adc4 = intRef;*/
   wa.suppVoltage = (uint16_t)(1.5/(float)intRef * (float)suppVolCH4 * 3.13 * 1000.0); 
   wa.tempMCU = (uint16_t)((1.43 - 1.5/(float)intRef * (float)adcTempMCU) / 4.3e-3 + 25.0); 
   
@@ -306,7 +301,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_WWDG_Init();
+  MX_IWDG_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
@@ -323,6 +318,16 @@ int main(void)
   initCheckLoop();
   checkLoop();
 #endif
+#ifdef NON_STANDART_CONTAINER
+#endif 
+#ifdef NON_STANDART_CONTAINER
+  HAL_GPIO_DeInit (GPIOE, GPIO_PIN_4);
+  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+#endif
   COOLER_ON();
   HAL_ADCEx_InjectedStart(&hadc1);
   setupDefaultLitersVolume(50);
@@ -337,7 +342,8 @@ int main(void)
     outPumpMgmnt();
     buttonMgmnt();
     lghtsMgmnt();
-    
+    HAL_IWDG_Refresh(&hiwdg);
+
     if (wa.machineState == WAIT) {
     }
     if (wa.machineState == NOT_READY) {
@@ -439,10 +445,11 @@ void SystemClock_Config(void)
 
     /**Initializes the CPU, AHB and APB busses clocks 
     */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL6;
@@ -596,6 +603,20 @@ static void MX_CRC_Init(void)
 
 }
 
+/* IWDG init function */
+static void MX_IWDG_Init(void)
+{
+
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_128;
+  hiwdg.Init.Reload = 1500;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* SPI2 init function */
 static void MX_SPI2_Init(void)
 {
@@ -703,22 +724,6 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart3) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
-/* WWDG init function */
-static void MX_WWDG_Init(void)
-{
-
-  hwwdg.Instance = WWDG;
-  hwwdg.Init.Prescaler = WWDG_PRESCALER_8;
-  hwwdg.Init.Window = 64;
-  hwwdg.Init.Counter = 64;
-  hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
-  if (HAL_WWDG_Init(&hwwdg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }

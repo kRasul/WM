@@ -41,15 +41,17 @@
 #include "moneyAcceptMgmnt.h"
 #include "portsMgmnt.h"
 #include "timeMgmnt.h"
+
+extern machineParameters wa;                           // состояние автомата
+extern counters cnt;
+extern lghts wmLghts;
+extern uint8_t uartDataRx[];
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern TIM_HandleTypeDef htim3;
 extern UART_HandleTypeDef huart1;
-extern machineParameters wa;                           // состояние автомата
-extern lghts wmLghts;
-extern counters cnt;
-extern uint8_t uartDataRx[RPI_BUFFER_SIZE];
 
 /******************************************************************************/
 /*            Cortex-M3 Processor Interruption and Exception Handlers         */ 
@@ -294,7 +296,7 @@ void TIM3_IRQHandler(void)
   timeMgmnt();
   checkCoinMoney();
   checkMoney();
-  
+  checkNoTare();
   checkTumperDoor(); 
   checkTumperMoney(); 
   checkFreeMode();

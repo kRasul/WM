@@ -38,7 +38,7 @@
         <expressions>
           
           
-        <item>lastPinNum</item><item>wa</item><item>money</item><item>cnt</item><item>noWaterOut</item><item>out101</item><item>out102</item><item>in101</item><item>in102</item><item>firInput</item><item>firOut</item><item>valFor10LitInCalibr</item><item>valFor10LitOutCalibr</item><item>waterCounters</item><item>huart1</item><item>uartDataRx</item><item>wmLghts</item><item>uartDataRx</item><item>cnt</item><item>usrBtCnt</item><item>hiwdg</item><item></item></expressions>
+        <item>lastPinNum</item><item>wa</item><item>money</item><item>cnt</item><item>noWaterOut</item><item>out101</item><item>out102</item><item>in101</item><item>in102</item><item>firInput</item><item>firOut</item><item>valFor10LitInCalibr</item><item>valFor10LitOutCalibr</item><item>waterCounters</item><item>huart1</item><item>uartDataRx</item><item>wmLghts</item><item>uartDataRx</item><item>cnt</item><item>usrBtCnt</item><item>hiwdg</item><item/></expressions>
         <col-names>
           
           

@@ -105,8 +105,9 @@ void setContainerValToZero(uint16_t maxContVolLit) {
   cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
 }
 
+// Нестандартный датчик отсутствия тары
 void checkNoTare() {
-#ifdef NON_STANDART_CONTAINER
+#ifdef NON_STANDART_NO_TARE_COUNTER
   static timeStr timeNoTareDetected = {0};
   static timeStr noSenseTime = {0};
   static bool firstExe = false;
@@ -150,8 +151,41 @@ void pauseOutHandler(){
 #endif
 }
 
+// Нестандартный датчик полного контейнера
+void checkContainerFull() {
+#ifdef NON_STANDART_FULL_CONTAINER_COUNTER
+  static timeStr timeNoTareDetected = {0};
+  static timeStr noSenseTime = {0};
+  static bool firstExe = false;
+  
+  bool inNoTareState = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_3);
+  
+  if (getTimeDiff(noSenseTime) < NO_SENSE_TIME_AFTER_TRIGGER) return;
+  
+  if (inNoTareState == 0) {
+    if (firstExe == false) {
+      firstExe = true;
+    }
+  }
+  else {
+    writeTime(&timeNoTareDetected);
+    firstExe = false;
+  }
+  
+  if (getTimeDiff(timeNoTareDetected) > TIME_TO_NO_TARE) {
+    writeTime(&noSenseTime);    
+    wa.container = FULL;
+    waterCounters.containerIn += valFor10LitInCalibr/10 * (maxContainerVolume - ((cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000));
+    cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
+    wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000;
+  }
+#endif
+}
+
 // Простой расходомер, датчик перелива из емкости
 void countLoseHandler() {
+#ifdef STANDART_FULL_CONTAINER_COUNTER
+
   static timeStr lastTime = {0};
   static uint8_t fastPulseLose = 0;
   
@@ -169,6 +203,7 @@ void countLoseHandler() {
     cnt.milLitContIn = (uint32_t)((double)waterCounters.containerIn * (10000.0)/(double)valFor10LitInCalibr); 
     wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000;
   }
+#endif 
 }
 
 // Простой расходомер на потребителя 

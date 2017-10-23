@@ -205,13 +205,21 @@
 
 #include "stdbool.h"
 
-//#define STANDART_NO_TARE_COUNTER      
-#ifndef STANDART_NO_TARE_COUNTER      
-#define NON_STANDART_CONTAINER
-#define TIME_TO_NO_TARE                 200     // time to work
-#define NO_SENSE_TIME_AFTER_TRIGGER     3000
+//#define STANDART_FULL_CONTAINER_COUNTER                         // comment this line if non standart FULL_CONTAINER sensor is using
+  #ifndef STANDART_FULL_CONTAINER_COUNTER      
+  #define NON_STANDART_FULL_CONTAINER_COUNTER
+#endif
+
+//#define STANDART_NO_TARE_COUNTER                                // comment this line if non standart NO_TARE sensor is using
+  #ifndef STANDART_NO_TARE_COUNTER      
+  #define NON_STANDART_NO_TARE_COUNTER
 #endif
     
+#if defined(NON_STANDART_NO_TARE_COUNTER) || defined(NON_STANDART_FULL_CONTAINER_COUNTER)
+  #define TIME_TO_NO_TARE                 200             // time treshold to activate event in ms
+  #define NO_SENSE_TIME_AFTER_TRIGGER     3000            
+#endif
+
 //#define DEBUG_PCB_MODE
 #define DEBUG_TIME_BETWEEN              500
 #define TIME_BETWEEN_PORT_CHANGES       100

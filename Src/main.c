@@ -64,6 +64,8 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
+WWDG_HandleTypeDef hwwdg;
+
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 timeStr timeConsPumpStarted;                    // время, когда последний раз был запущен насос на клиента
@@ -98,6 +100,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_WWDG_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -265,7 +268,11 @@ void prepareToTransition (){
   }
   wa.lastMachineState = wa.machineState; 
 }
-                                                  
+              
+void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef* hwwdg) {
+  NVIC_SystemReset();
+}
+
 /* USER CODE END 0 */
 
 int main(void)
@@ -281,7 +288,8 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  MX_GPIO_Init();
+  TM_HD44780_Init(16, 2, 3000);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -302,11 +310,11 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_IWDG_Init();
+  MX_WWDG_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
   initUART();
-  TM_HD44780_Init(16, 2, 3000);
   wa.machineState = WAIT;
   wa.lastMachineState = FREE;
   prepareToTransition();
@@ -318,9 +326,8 @@ int main(void)
   initCheckLoop();
   checkLoop();
 #endif
-#ifdef NON_STANDART_CONTAINER
-#endif 
-#ifdef NON_STANDART_CONTAINER
+
+#ifdef NON_STANDART_NO_TARE_COUNTER
   HAL_GPIO_DeInit (GPIOE, GPIO_PIN_4);
   GPIO_InitTypeDef GPIO_InitStruct;
   GPIO_InitStruct.Pin = GPIO_PIN_4;
@@ -328,9 +335,19 @@ int main(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 #endif
+#ifdef NON_STANDART_FULL_CONTAINER_COUNTER
+  HAL_GPIO_DeInit (GPIOE, GPIO_PIN_3);
+  GPIO_InitTypeDef GPIO_InitStruct2;
+  GPIO_InitStruct2.Pin = GPIO_PIN_3;
+  GPIO_InitStruct2.Pull = GPIO_PULLUP;
+  GPIO_InitStruct2.Mode = GPIO_MODE_INPUT;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct2);
+#endif
   COOLER_ON();
   HAL_ADCEx_InjectedStart(&hadc1);
   setupDefaultLitersVolume(50);
+  __HAL_RCC_WWDG_CLK_ENABLE();
+  __HAL_IWDG_START(&hiwdg);
   
   while (1)
   {
@@ -343,7 +360,8 @@ int main(void)
     buttonMgmnt();
     lghtsMgmnt();
     HAL_IWDG_Refresh(&hiwdg);
-
+    HAL_WWDG_Refresh(&hwwdg);
+      
     if (wa.machineState == WAIT) {
     }
     if (wa.machineState == NOT_READY) {
@@ -355,7 +373,8 @@ int main(void)
         prepareToTransition();
       }
       money.leftFromPaid = money.sessionPaid - (((double)cnt.milLitWentOut - (double)lastMilLitWentOut) / 1000.0) * waterPrice;      
-      if (money.leftFromPaid <= 0) {
+      int32_t moneyInt = (int32_t) money.leftFromPaid;
+      if (moneyInt <= 0) {
         uint32_t temp = cnt.milLitWentOut;
         while(cnt.milLitWentOut < temp + 20);
         wa.machineState = WAIT;
@@ -621,6 +640,7 @@ static void MX_IWDG_Init(void)
 static void MX_SPI2_Init(void)
 {
 
+  /* SPI2 parameter configuration*/
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_SLAVE;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
@@ -724,6 +744,22 @@ static void MX_USART3_UART_Init(void)
   huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* WWDG init function */
+static void MX_WWDG_Init(void)
+{
+
+  hwwdg.Instance = WWDG;
+  hwwdg.Init.Prescaler = WWDG_PRESCALER_8;
+  hwwdg.Init.Window = 127;
+  hwwdg.Init.Counter = 127;
+  hwwdg.Init.EWIMode = WWDG_EWI_ENABLE;
+  if (HAL_WWDG_Init(&hwwdg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }

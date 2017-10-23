@@ -106,6 +106,7 @@ void checkFreeMode();
 void checkInput10Counter();
 void checkOut10Counter();
 void checkNoTare();
+void checkContainerFull();
 
 void clrUserButton();
 void clrServUpButton();

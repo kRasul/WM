@@ -323,7 +323,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   MX_GPIO_Init();
-  TM_HD44780_Init(16, 2, 3000);
+  TM_HD44780_Init(16, 2, 500);
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -343,8 +343,8 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_IWDG_Init();
-  MX_WWDG_Init();
+  //MX_IWDG_Init();
+  //MX_WWDG_Init();
 
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim3);
@@ -380,8 +380,8 @@ int main(void)
   COOLER_ON();
   HAL_ADCEx_InjectedStart(&hadc1);
   setupDefaultLitersVolume(50);
-  __HAL_RCC_WWDG_CLK_ENABLE();
-  __HAL_IWDG_START(&hiwdg);
+  //__HAL_RCC_WWDG_CLK_ENABLE();
+  //__HAL_IWDG_START(&hiwdg);
   
   while (1)
   {
@@ -393,8 +393,8 @@ int main(void)
     outPumpMgmnt();
     buttonMgmnt();
     lghtsMgmnt();
-    HAL_IWDG_Refresh(&hiwdg);
-    HAL_WWDG_Refresh(&hwwdg);
+    //HAL_IWDG_Refresh(&hiwdg);
+    //HAL_WWDG_Refresh(&hwwdg);
       
     if (wa.machineState == WAIT) {
     }

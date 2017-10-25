@@ -175,9 +175,12 @@ uint16_t insertStats (uint8_t * uartTxBuf) {
 
   uint32_t uid[3];
   HAL_GetUID(&uid[0]);                                                          // printf("0x%08x\n", i);       // gives 0x00000007
+  *(uartTxBuf + byteCounter) = '"';  byteCounter++;      
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "0x%08x", uid[0]);
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%08x", uid[1]);
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%08x", uid[2]);
+  *(uartTxBuf + byteCounter) = '"';  byteCounter++;      
+  *(uartTxBuf + byteCounter) = ',';  byteCounter++;      
 
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", wa.tempMCU);
   *(uartTxBuf + byteCounter) = ']';  byteCounter++;      

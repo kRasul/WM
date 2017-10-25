@@ -205,12 +205,12 @@
 
 #include "stdbool.h"
 
-//#define STANDART_FULL_CONTAINER_COUNTER                         // comment this line if non standart FULL_CONTAINER sensor is using
+#define STANDART_FULL_CONTAINER_COUNTER                         // comment this line if non standart FULL_CONTAINER sensor is using
   #ifndef STANDART_FULL_CONTAINER_COUNTER      
   #define NON_STANDART_FULL_CONTAINER_COUNTER
 #endif
 
-//#define STANDART_NO_TARE_COUNTER                                // comment this line if non standart NO_TARE sensor is using
+#define STANDART_NO_TARE_COUNTER                                // comment this line if non standart NO_TARE sensor is using
   #ifndef STANDART_NO_TARE_COUNTER      
   #define NON_STANDART_NO_TARE_COUNTER
 #endif
@@ -255,6 +255,14 @@ typedef enum {
   CONFIG
 } state;
 
+typedef enum {
+  ZERO,
+  THREE,
+  FIVE,
+  FIFTEEN,
+  THIRTY,
+  SIXTY
+} noTareStageEnum;
 
 typedef enum {
   HI_PRESSURE, 

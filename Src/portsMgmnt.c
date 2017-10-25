@@ -196,7 +196,6 @@ void countLoseHandler() {
   else fastPulseLose = 0;
   writeTime(&lastTime);
   
-  
   if (fastPulseLose > FAST_PULSES_NUM_TRESHOLD) {
     wa.container = FULL;                                                        // we know container is full
     waterCounters.containerIn += valFor10LitInCalibr/10 * (maxContainerVolume - ((cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 1000));

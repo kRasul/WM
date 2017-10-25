@@ -106,7 +106,7 @@ uint16_t insertStats (uint8_t * uartTxBuf) {
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", cnt.milLitContIn);
   *(uartTxBuf + byteCounter) = ',';  byteCounter++;
   
-  byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", (int)(waterPrice*100.0));
+  byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", (int)(waterPrice));
   *(uartTxBuf + byteCounter) = ',';  byteCounter++;
   
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", containerMinVolume);
@@ -121,7 +121,7 @@ uint16_t insertStats (uint8_t * uartTxBuf) {
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", money.sessionPaid);
   *(uartTxBuf + byteCounter) = ',';  byteCounter++;
   
-  byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", (int)(money.leftFromPaid*100.0));
+  byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", (int)(money.leftFromPaid));
   *(uartTxBuf + byteCounter) = ',';  byteCounter++;
   
   byteCounter += sprintf((char*)(uartTxBuf + byteCounter), "%d", wa.machineState);

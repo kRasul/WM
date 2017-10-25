@@ -1,16 +1,16 @@
-"D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Src\portsMgmnt.c"
+"D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Src\portsMgmnt.c"
 -std=c99
 -ferror-limit=100
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Inc
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Inc
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/CMSIS/Device/ST/STM32F1xx/Include
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/CMSIS/Device/ST/STM32F1xx/Include
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/CMSIS/Include
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\EWARM/../Drivers/CMSIS/Include
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\arm\CMSIS\Include
 -I
@@ -18,15 +18,15 @@ C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\arm\inc
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\arm\inc\c
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Inc
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Inc
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\STM32F1xx_HAL_Driver\Inc
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\STM32F1xx_HAL_Driver\Inc
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\STM32F1xx_HAL_Driver\Inc\Legacy
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\STM32F1xx_HAL_Driver\Inc\Legacy
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\CMSIS\Device\ST\STM32F1xx\Include
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\CMSIS\Device\ST\STM32F1xx\Include
 -I
-D:\YADisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\CMSIS\Include
+D:\YAdisk\#1_work\Автомойка самообслуживания\WM_v0.10\WM\Drivers\CMSIS\Include
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.5\arm\CMSIS\Include
 -DUSE_HAL_DRIVER=1

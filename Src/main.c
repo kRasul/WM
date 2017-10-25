@@ -68,7 +68,8 @@ WWDG_HandleTypeDef hwwdg;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-timeStr timeConsPumpStarted;                    // время, когда последний раз был запущен насос на клиента
+timeStr timeConsPumpStarted;
+static noTareStageEnum noTareStage = THREE;
 timeStr waterMissDetectedTime;
 
 static uint32_t lastMilLitWentOut = 0;          // показания выходного миллитрового счетчика, когда было завершено последнее обслуживание 
@@ -113,6 +114,7 @@ void containerMgmnt() {
   wa.currentContainerVolume = (cnt.milLitContIn - cnt.milLitWentOut - cnt.milLitloseCounter) / 10;
   if (cnt.milLitWentOut + (maxContainerVolume-5)*1000 > cnt.milLitContIn) wa.container = NOT_FULL;
   checkMagistralPressure();
+  
   if (wa.magistralPressure == HI_PRESSURE && wa.container != FULL) {
     if (wa.mainPump != WORKING) {
       delayMilliseconds(100);
@@ -129,14 +131,23 @@ void containerMgmnt() {
       MAINV_OFF();
 //      FILTV_OFF();
     }
-  }  
+  }
 }
 
 void buttonMgmnt(){
   timeStr time = getCurTime();
-  if (wa.machineState == NOT_READY)   TURN_BUT_LED_OFF();
-  if (wa.machineState == WAIT)        {
-    TURN_BUT_LED_ON();
+  if (wa.machineState == NOT_READY) TURN_BUT_LED_OFF();
+  if (wa.machineState == WAIT) {
+    uint8_t secTenFrac = time.sec % 20;
+    if (secTenFrac > 10) TURN_BUT_LED_ON();
+    else {
+      secTenFrac /= 2;
+      if (secTenFrac % 2 == 1) TURN_BUT_LED_OFF();
+      else {
+        if (time.msec / 5 < 100) TURN_BUT_LED_OFF();
+        else TURN_BUT_LED_ON();
+      }
+    }
   }  
   if (wa.machineState == NO_TARE)     {
     if (time.msec %250 > 125) TURN_BUT_LED_ON();
@@ -156,6 +167,7 @@ void outPumpMgmnt() {
   static uint32_t lastMillilit = 0;
   if (!(wa.machineState == NO_TARE || wa.machineState == WORK)) return;
 
+  // NO_TARE condition detected, let's turn off out pump
   if (wa.waterMissDetected == true) {
     if (wa.consumerPump == WORKING) CONSUMP_OFF();
     if (getTimeDiff(waterMissDetectedTime) > 500) {
@@ -163,6 +175,7 @@ void outPumpMgmnt() {
     }
   }
   
+  // check if there is no water in container
   static uint8_t noWaterOut = 0;
   if (getTimeDiff(timeCheck) > 500 && wa.consumerPump == WORKING) {
     writeTime(&timeCheck);
@@ -171,6 +184,7 @@ void outPumpMgmnt() {
     lastMillilit = cnt.milLitWentOut;
   }
   
+  // turn off out pump if there is no water in container
   if (noWaterOut > outPumpNoWaterStopTime) {
     if (wa.consumerPump == WORKING) CONSUMP_OFF();
     noWaterOut = 0;
@@ -256,7 +270,9 @@ void prepareToTransition (){
   }
   
   if (wa.machineState == WORK) {
-    if (wa.lastMachineState == JUST_PAID) lastMilLitWentOut = cnt.milLitWentOut;
+    if (wa.lastMachineState == JUST_PAID) {
+      lastMilLitWentOut = cnt.milLitWentOut;
+    }
     CONSUMP_ON();
   }
   
@@ -271,6 +287,24 @@ void prepareToTransition (){
               
 void HAL_WWDG_EarlyWakeupCallback(WWDG_HandleTypeDef* hwwdg) {
   NVIC_SystemReset();
+}
+
+uint32_t getNoTareProtTime (noTareStageEnum noTare) {
+  switch (noTare) {
+    case ZERO:    return 3000;
+                  break;
+    case THREE:   return 3000;
+                  break;
+    case FIVE:    return 5000;
+                  break;
+    case FIFTEEN: return 15000;
+                  break;
+    case THIRTY:  return 30000;
+                  break;
+    case SIXTY:   return 60000;
+                  break;
+  }
+  return 0;
 }
 
 /* USER CODE END 0 */
@@ -370,6 +404,8 @@ int main(void)
     if (wa.machineState == WORK) {
       if (wa.waterMissDetected == true){
         wa.machineState = NO_TARE;
+        if (getTimeDiff(timeConsPumpStarted) < getNoTareProtTime(noTareStage)) if (noTareStage != SIXTY) noTareStage++;
+        else noTareStage = ZERO;
         prepareToTransition();
       }
       money.leftFromPaid = money.sessionPaid - (((double)cnt.milLitWentOut - (double)lastMilLitWentOut) / 1000.0) * waterPrice;      
@@ -399,11 +435,14 @@ int main(void)
     if (wa.currentContainerVolume >= containerMinVolume * 100 && wa.machineState == NOT_READY) {
       wa.machineState = WAIT;
       prepareToTransition();
-    }    
+    }
+    
 ////// BUTTONS PROCESSING        
     if (isUserButtonPressed() && wa.machineState == JUST_PAID) {
       wa.machineState = WORK;
-      prepareToTransition();
+      writeTime(&timeConsPumpStarted);                                          // to check NO_TARE condition at the start
+      noTareStage = ZERO;
+      prepareToTransition();                                                     
       disableButtonsForTime();  
       clrUserButton();
     }
@@ -412,14 +451,22 @@ int main(void)
       disableSensorsForTime();
       clrUserButton();
       if (wa.consumerPump == WORKING) CONSUMP_OFF();
-      else CONSUMP_ON();
+      else {
+        CONSUMP_ON();
+        if (noTareStage > ZERO) writeTime(&timeConsPumpStarted);                // new time for CosumPump to remember if last time 
+      }
     }
-    if (isUserButtonPressed() && wa.machineState == NO_TARE && getTimeDiff(waterMissDetectedTime) > 1000) {
-      wa.machineState = WORK;
-      prepareToTransition();
+      
+    if (isUserButtonPressed() && wa.machineState == NO_TARE) {
+      if (getTimeDiff(timeConsPumpStarted) > getNoTareProtTime(noTareStage)/2) {          // button works only after 
+        if (getTimeDiff(waterMissDetectedTime) > 1000) {
+          wa.machineState = WORK;
+          prepareToTransition();
+        }
+      }
       clrUserButton();
     } 
-    if (wa.machineState == NO_TARE && getTimeDiff(waterMissDetectedTime) > 4000) {      // return to WORK with pause mode
+    if (wa.machineState == NO_TARE && getTimeDiff(waterMissDetectedTime) > (getNoTareProtTime(noTareStage))) {      // return to WORK with pause mode
       wa.machineState = WORK;
     }
     
@@ -698,7 +745,7 @@ static void MX_USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -717,7 +764,7 @@ static void MX_USART2_UART_Init(void)
 {
 
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -736,7 +783,7 @@ static void MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
+  huart3.Init.BaudRate = 9600;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -924,6 +971,7 @@ static void MX_GPIO_Init(void)
 void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
+  NVIC_SystemReset();
   /* User can add his own implementation to report the HAL error return state */
   while(1) 
   {
@@ -943,6 +991,7 @@ void _Error_Handler(char * file, int line)
 void assert_failed(uint8_t* file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
+  NVIC_SystemReset();
   /* User can add his own implementation to report the file name and line number,
     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
